@@ -376,7 +376,7 @@ UnrealBloomPass.prototype = Object.assign(Object.create(Pass.prototype), {
         bloomTintColors: { value: null },
         bloomRadius: { value: 0.0 },
       },
-
+      /* eslint-disable no-multi-str */
       vertexShader:
         "varying vec2 vUv;\n\
 				void main() {\n\
