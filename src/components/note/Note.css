@@ -1,0 +1,100 @@
+.note-container {
+  position: absolute;
+  display: flex;
+  text-align: left;
+  width: 20rem;
+  height: 20rem;
+  transition: all 1s ease;
+  color: white;
+}
+.note-container.mini-display {
+  overflow: hidden;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0.5rem solid orangered;
+  cursor: pointer;
+}
+.note-container.expanded-display {
+  width: 90%;
+  height: 90%;
+  transform: translate(-50%, -50%);
+}
+.note-container.expanded-display .note {
+  flex-basis: 50%;
+}
+.note-container.expanded-display .dialogue-container {
+  flex-basis: 50%;
+  flex-grow: 1;
+}
+
+.note {
+  background-color: rgb(32, 32, 32);
+  padding: 1rem;
+}
+.note-text {
+  height: 100%;
+  overflow-y: scroll;
+}
+.display-buttons {
+  position: absolute;
+}
+.display-buttons button:hover::after {
+  position: absolute;
+  width: 200%;
+  background-color: black;
+  color: white;
+}
+.display-buttons button {
+  margin-right: 0.5rem;
+}
+.open-dialogue:hover::after {
+  content: "open dialogue";
+  top: 2rem;
+  left: -50%;
+}
+.close-dialogue:hover::after {
+  content: "close dialogue";
+  top: 2rem;
+  left: -50%;
+}
+.mini:hover::after {
+  content: "make mini";
+  top: 2rem;
+  left: -50%;
+}
+.note-container.no-access {
+  border-color: yellow;
+  background-color: yellow;
+  color: black;
+  overflow: visible;
+}
+.note-container.no-access:hover::after {
+  content: "requires web monetization";
+  background-color: black;
+  color: white;
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  width: 400%;
+}
+.web-mon-info {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: black;
+  color: white;
+  width: 50%;
+  height: 20%;
+  padding: 2rem;
+  border: 3px solid white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+}
+.web-mon-info a,
+.web-mon-info a:active,
+.web-mon-info a:visited {
+  color: white;
+}

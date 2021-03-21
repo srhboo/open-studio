@@ -1,0 +1,8 @@
+body {
+  background-color: black;
+}
+.ui-controls {
+  position: absolute;
+  color: white;
+  text-align: left;
+}
