@@ -321,7 +321,7 @@ UnrealBloomPass.prototype = Object.assign(Object.create(Pass.prototype), {
         texSize: { value: new Vector2(0.5, 0.5) },
         direction: { value: new Vector2(0.5, 0.5) },
       },
-
+      /* eslint-disable no-multi-str */
       vertexShader:
         "varying vec2 vUv;\n\
 				void main() {\n\
@@ -376,7 +376,7 @@ UnrealBloomPass.prototype = Object.assign(Object.create(Pass.prototype), {
         bloomTintColors: { value: null },
         bloomRadius: { value: 0.0 },
       },
-      /* eslint-disable no-multi-str */
+
       vertexShader:
         "varying vec2 vUv;\n\
 				void main() {\n\
