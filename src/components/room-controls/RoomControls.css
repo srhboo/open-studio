@@ -1,0 +1,53 @@
+h2 {
+  margin: 0 0 0.3rem 0;
+  font-size: 1.2rem;
+}
+h3 {
+  margin: 0.2rem 0;
+  font-size: 1rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  text-decoration: underline;
+}
+.add-note-form {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: palevioletred;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+.room-panel {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  background-color: rgb(0, 8, 8);
+  border: 1px solid white;
+  color: white;
+  padding: 0.5rem;
+  font-size: 1rem;
+  font-family: "Courier New", Courier, monospace;
+}
+.room-panel-section {
+  padding: 0.5rem 0;
+}
+.note-textarea {
+  height: 20rem;
+  width: 30rem;
+}
+.unavailable {
+  color: rgb(34, 33, 33);
+  font-style: italic;
+  position: relative;
+}
+.unavailable:hover::before {
+  position: absolute;
+  background-color: black;
+  color: white;
+  content: "set your web monetization pointer to use this option";
+  width: auto;
+  top: -1.5rem;
+}

@@ -5,7 +5,7 @@ import App from "./components/app/App.js";
 import reportWebVitals from "./reportWebVitals";
 import { initializeFirebase } from "./utils/firebase/initialize";
 
-initializeFirebase();
+export const db = initializeFirebase();
 
 ReactDOM.render(
   <React.StrictMode>

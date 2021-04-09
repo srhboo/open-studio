@@ -1,6 +1,8 @@
-import firebase from "firebase/app";
+import firebase from "firebase";
+import "firebase/firestore";
 
 export const initializeFirebase = () => {
+  console.log("initialized");
   const firebaseConfig = {
     apiKey: "AIzaSyASQg5GfleiuvqPMhqLyYtQfre4FlW3hyM",
     authDomain: "rooms-bdca3.firebaseapp.com",
@@ -11,4 +13,7 @@ export const initializeFirebase = () => {
   };
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
+  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+  const db = firebase.firestore();
+  return db;
 };

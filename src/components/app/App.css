@@ -36,3 +36,12 @@
     transform: rotate(360deg);
   }
 }
+
+.user-nav {
+  position: absolute;
+  color: white;
+  width: 1200px;
+  display: flex;
+  justify-content: flex-end;
+  background-color: black;
+}
