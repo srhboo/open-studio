@@ -38,12 +38,13 @@ const NoAccessNote = ({ style, maxZ }) => {
 };
 
 export const Note = ({
-  noteId,
-  text,
+  objectId,
+  textContent,
   position,
   maxZ,
   setMaxZ,
   requiresWebMon,
+  dialogue,
   webMonIsActive = false,
 }) => {
   const [noteDisplay, setNoteDisplay] = useState(NOTE_STATUS.MINI);
@@ -82,7 +83,7 @@ export const Note = ({
           onClick={handleNoteClick}
         >
           <div className="note">
-            <div className="note-text">{text}</div>
+            <div className="note-text">{textContent}</div>
             <div className="display-buttons">
               <button
                 type="button"
@@ -112,7 +113,7 @@ export const Note = ({
             </div>
           </div>
           {noteDisplay === NOTE_STATUS.EXPANDED && (
-            <Dialogue dialogueList={[]} />
+            <Dialogue dialogueList={dialogue} />
           )}
         </div>
       )}

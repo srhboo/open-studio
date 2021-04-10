@@ -37,7 +37,7 @@ export const Dialogue = ({ dialogueList, handleAddMessage }) => {
   const [text, updateText] = useState("");
 
   //may delete later
-  const [list, setList] = useState(defaultDialogueList);
+  const [list, setList] = useState(dialogueList);
 
   const fakeHandleAddMessage = (message) => {
     const newDialogue = {
