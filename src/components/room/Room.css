@@ -6,3 +6,9 @@ body {
   color: white;
   text-align: left;
 }
+.room-info {
+  position: absolute;
+  font-family: "Courier New", Courier, monospace;
+  background-color: black;
+  color: white;
+}

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Dialogue.css";
 import { generateId } from "../../utils/random";
+import { db } from "../../index";
 
 const defaultDialogueList = [
   {
@@ -29,37 +30,59 @@ const defaultDialogueList = [
 ];
 
 // one dialogue stream per one object (photo, note)
-export const Dialogue = ({ dialogueList, handleAddMessage }) => {
+export const Dialogue = ({ objectId, roomId, currentUser }) => {
   // consists of one form to add to dialogue
   // and list of preexisting dialogues
   // object is in charge of knowing its dialogue id
   // dialogue is in charge of handling dialogue data
   const [text, updateText] = useState("");
+  const [dialogueList, setDialogueList] = useState([]);
+  const dialogueRef = db
+    .collection("rooms")
+    .doc(roomId)
+    .collection("objects")
+    .doc(objectId)
+    .collection("dialogue");
 
-  //may delete later
-  const [list, setList] = useState(dialogueList);
-
-  const fakeHandleAddMessage = (message) => {
-    const newDialogue = {
-      contributor: "anonymous",
-      message,
-      dialogueId: generateId(),
-    };
-    setList([...list, newDialogue]);
-  };
+  useEffect(() => {
+    const dia = dialogueRef
+      .orderBy("timestamp", "asc")
+      .onSnapshot((querySnapshot) => {
+        const list = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          list.push(data);
+        });
+        setDialogueList(list);
+      });
+    return () => dia();
+  }, [setDialogueList, dialogueRef, roomId, objectId]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    fakeHandleAddMessage(text);
+    dialogueRef
+      .add({
+        contributor: currentUser,
+        message: text,
+        timestamp: Date.now(),
+      })
+      .then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+      });
     updateText("");
   };
   return (
     <div className="dialogue-container">
       <ul className="dialogue-list">
-        {list.map(({ dialogueId, contributor, message }) => (
-          <li className="message-container" key={dialogueId}>
+        {dialogueList.map(({ contributor, message }) => (
+          <li className="message-container" key={message}>
             {message}
-            <span className="dialogue-contributor">- {contributor}</span>
+            <span className="dialogue-contributor">
+              - {contributor.username}
+            </span>
           </li>
         ))}
       </ul>

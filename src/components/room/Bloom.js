@@ -15,20 +15,28 @@ export const disposeMaterial = (obj) => {
 };
 
 export const BLOOM_SCENE = 1;
+export const ILLUM_SCENE = 2;
 
 export const setupBloom = ({ scene, camera, renderer }) => {
   const renderScene = new RenderPass(scene, camera);
 
   const darkMaterial = new THREE.MeshBasicMaterial({ color: "black" });
-
+  const darkishMaterial = new THREE.MeshBasicMaterial({ color: 0x0f0f0f });
   const materials = {};
   const bloomLayer = new THREE.Layers();
   bloomLayer.set(BLOOM_SCENE);
 
+  const darkishLayer = new THREE.Layers();
+  darkishLayer.set(ILLUM_SCENE);
+
   function darkenNonBloomed(obj) {
     if (obj.isMesh && bloomLayer.test(obj.layers) === false) {
       materials[obj.uuid] = obj.material;
-      obj.material = darkMaterial;
+      if (darkishLayer.test(obj.layers) === true) {
+        obj.material = darkishMaterial;
+      } else {
+        obj.material = darkMaterial;
+      }
     }
   }
   function restoreMaterial(obj) {

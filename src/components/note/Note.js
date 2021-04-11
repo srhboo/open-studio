@@ -15,12 +15,12 @@ const NoAccessNote = ({ style, maxZ }) => {
       <div
         className={"note-container mini-display no-access"}
         onClick={() => setIsInfoWindowOpen(true)}
-        style={{ ...style, zIndex: maxZ }}
+        style={{ ...style }}
       >
         ??
       </div>
       {isInfoWindowOpen && (
-        <div className="web-mon-info">
+        <div className="web-mon-info" style={{ zIndex: maxZ + 1 }}>
           <a
             href="https://webmonetization.org/"
             target="_blank"
@@ -39,6 +39,7 @@ const NoAccessNote = ({ style, maxZ }) => {
 
 export const Note = ({
   objectId,
+  roomId,
   textContent,
   position,
   maxZ,
@@ -46,6 +47,7 @@ export const Note = ({
   requiresWebMon,
   dialogue,
   webMonIsActive = false,
+  currentUser,
 }) => {
   const [noteDisplay, setNoteDisplay] = useState(NOTE_STATUS.MINI);
   const [zIndex, setZIndex] = useState(0);
@@ -69,7 +71,7 @@ export const Note = ({
   return (
     <React.Fragment>
       {noAccess ? (
-        <NoAccessNote style={noteNormalDisplayPosition} />
+        <NoAccessNote style={noteNormalDisplayPosition} maxZ={maxZ} />
       ) : (
         <div
           className={`note-container${
@@ -113,7 +115,12 @@ export const Note = ({
             </div>
           </div>
           {noteDisplay === NOTE_STATUS.EXPANDED && (
-            <Dialogue dialogueList={dialogue} />
+            <Dialogue
+              dialogueList={dialogue}
+              objectId={objectId}
+              roomId={roomId}
+              currentUser={currentUser}
+            />
           )}
         </div>
       )}

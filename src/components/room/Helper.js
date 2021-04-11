@@ -14,11 +14,14 @@ export const setupHelper = ({
   toDispose.push(helperGeometry);
   toDispose.push(helperMaterial);
 
-  let helper;
-  helper = new THREE.Mesh(helperGeometry, helperMaterial);
-  helper.position.x = -100;
-  scene.add(helper);
-  toRemove.push(helper);
+  let defaultHelper;
+  defaultHelper = new THREE.Mesh(helperGeometry, helperMaterial);
+  defaultHelper.position.x = -100;
+  scene.add(defaultHelper);
+  toRemove.push(defaultHelper);
+
+  let helper = defaultHelper;
+  let currentHelper = "default";
 
   const mouse = new THREE.Vector2();
 
@@ -47,5 +50,16 @@ export const setupHelper = ({
       helper.position.copy(intersects[0].point);
     }
   };
-  return { onMouseMove };
+
+  const switchHelper = (mesh) => {
+    if (currentHelper === "default") {
+      helper = mesh;
+      defaultHelper.position.x = -100;
+      currentHelper = "object";
+    } else {
+      helper = defaultHelper;
+      currentHelper = "default";
+    }
+  };
+  return { onMouseMove, switchHelper };
 };

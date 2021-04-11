@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./RoomControls.css";
 import { PointerForm } from "../pointer-form/PointerForm";
+import { db } from "../../index";
 
-export const RoomControls = ({ handleAddNote = () => {} }) => {
+export const RoomControls = ({ handleInitiatePlaceNote, setNoteToCreate }) => {
+  console.log("loaded");
   const [noteFormIsOpen, setNoteFormIsOpen] = useState(false);
   const [note, updateNote] = useState("");
   const [requiresWebMon, setRequiresWebMon] = useState(false);
@@ -12,7 +14,35 @@ export const RoomControls = ({ handleAddNote = () => {} }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    handleAddNote({ note, requiresWebMon });
+    const {
+      newObject,
+      switchHelper,
+      objectsRef,
+      raycastHighlightObjects,
+    } = handleInitiatePlaceNote();
+    newObject.callback = () => {
+      objectsRef
+        .add({
+          type: "text",
+          textContent: note,
+          dialogue: [],
+          requiresWebMon,
+          position: {
+            x: newObject.position.x,
+            y: newObject.position.y,
+            z: newObject.position.z,
+          },
+        })
+        .then((docRef) => {
+          console.log("Document written with ID: ", docRef.id);
+        })
+        .catch((error) => {
+          console.error("Error adding document: ", error);
+        });
+      switchHelper();
+    };
+    raycastHighlightObjects.push(newObject);
+    switchHelper(newObject);
     setNoteFormIsOpen(false);
   };
   const webMonUnavailable = !webMonPointer;

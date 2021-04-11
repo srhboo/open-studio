@@ -78,7 +78,7 @@ const App = () => {
         </div>
         <Switch>
           <Route path="/r/:roomId">
-            <Room />
+            <Room currentUser={currentUser} />
           </Route>
           <Route path="/">
             <CreatorControls />

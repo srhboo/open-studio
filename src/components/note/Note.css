@@ -13,6 +13,7 @@
   height: 1.5rem;
   border: 0.5rem solid orangered;
   cursor: pointer;
+  transform: translate(-50%, -50%);
 }
 .note-container.expanded-display {
   width: 90%;

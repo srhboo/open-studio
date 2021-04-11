@@ -11,6 +11,9 @@ export const ImageViewer = ({
   maxZ,
   setMaxZ,
   imageViewerIsOpen,
+  objectId,
+  roomId,
+  currentUser,
 }) => {
   const [isDialogueExpanded, setIsDialogueExpanded] = useState(false);
 
@@ -30,7 +33,13 @@ export const ImageViewer = ({
         <img src={url} className="gdrive-img" alt={alt} />
       </div>
 
-      {isDialogueExpanded && <Dialogue />}
+      {isDialogueExpanded && (
+        <Dialogue
+          objectId={objectId}
+          currentUser={currentUser}
+          roomId={roomId}
+        />
+      )}
       <div className="display-buttons">
         <button
           type="button"

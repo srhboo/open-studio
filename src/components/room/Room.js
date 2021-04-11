@@ -13,51 +13,9 @@ import { createBlob } from "./Blob";
 import { setupHelper } from "./Helper";
 import { setupRaycaster } from "./Raycaster";
 import { db } from "../../index";
-// all geometries materials and textures must be disposed
+import { createRoomObject } from "./RoomObject";
 
-// functionality:
-// 1. allow user to add the main work of the room - start with just an image
-// 2. allow user to add additional photos and text with web monetization option
-// 3. allow other users to add comments
-// 4. show online bodies
-
-// separate using toggle
-// make separate component for creator view/controls and friends
-
-const sampleObjects = [
-  {
-    objectId: "23jsdfj",
-    type: "text",
-    textContent:
-      "I really like Proin nibh turpis, pulvinar sed dolor ut, gravida varius libero. Cras sit amet vestibulum sem. Donec purus enim, viverra vitae eleifend ac, dapibus et ipsum. Nullam dictum ultricies pellentesque.",
-    position: { x: -10.5, y: -1.7419275145443578, z: 4.925114961635961 },
-    dialogue: [],
-    requiresWebMon: false,
-  },
-  {
-    id: "123245r",
-    type: "text",
-    textContent:
-      "sdfsdfsdfsdf nibh turpis, pulvinar sed dolor ut, gravida varius libero. Cras sit amet vestibulum sem. Donec purus enim, viverra vitae eleifend ac, dapibus et ipsum. Nullam dictum ultricies pellentesque.",
-    position: {
-      x: -10.499999999999998,
-      y: 2.972048198657813,
-      z: 5.276549540988734,
-    },
-    dialogue: [],
-    requiresWebMon: false,
-  },
-  {
-    id: "756745r",
-    type: "text",
-    textContent: "3453453454t",
-    position: { x: 8.867887961529597, y: -3.4502712793277643, z: 0 },
-    dialogue: [],
-    requiresWebMon: true,
-  },
-];
-
-export const Room = ({ objects = sampleObjects }) => {
+export const Room = ({ currentUser }) => {
   const canvasEl = useRef(null);
 
   const { roomId } = useParams();
@@ -67,24 +25,16 @@ export const Room = ({ objects = sampleObjects }) => {
   const [imageViewerIsOpen, setImageViewerIsOpen] = useState(false);
   const [roomObjects, setRoomObjects] = useState([]);
   const [maxZ, setMaxZ] = useState(1);
+  const [handlePlaceNote, setHandlePlaceNote] = useState(null);
+  const [roomInfo, setRoomInfo] = useState({
+    name: "",
+    description: "",
+    centerpieceId: "",
+  });
+  const [centerpiece, setCenterpiece] = useState({ url: "" });
+  const [error, setError] = useState("none");
 
   const [cubePos, setCubePos] = useState({ x: 50, y: 50 });
-
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-
-  //   const handleAddNote = ({ note, requiresWebMon }) => {
-  //     // this is just a fake
-  //     const randomX = getRandomInt(50, width - 50);
-  //     const randomY = getRandomInt(50, height - 50);
-  //     const newNote = {
-  //       noteId: generateId(),
-  //       text: note,
-  //       position: { x: randomX, y: randomY },
-  //       requiresWebMon,
-  //     };
-  //     setNotes([...notes, newNote]);
-  //   };
 
   useEffect(() => {
     // three js clean-up
@@ -117,30 +67,55 @@ export const Room = ({ objects = sampleObjects }) => {
     camera.position.z = 18;
     camera.position.y = 3;
 
-    let renderer = new THREE.WebGLRenderer();
+    let renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(canvasWidth, canvasHeight);
 
     // get data
-    const room = db.collection("rooms").doc("first-room");
+    const room = db.collection("rooms").doc(roomId);
+    let centerpieceId = "";
+    room.get().then((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        setRoomInfo(data);
+        centerpieceId = data.centerpieceId;
+      } else {
+        setError("not-found");
+      }
+    });
     const objectsRef = room.collection("objects");
 
     objectsRef.onSnapshot((querySnapshot) => {
+      console.log("Changed");
       const objectsWithId = [];
       querySnapshot.forEach((doc) => {
-        objectsWithId.push({ ...doc.data(), objectId: doc.id });
-      });
-      const objectsWithOverlay = objectsWithId.map((object) => {
-        const pos = createVector(
-          object.position.x,
-          object.position.y,
-          object.position.z,
+        const objectTemp = doc.data();
+        const screenPos = createVector(
+          objectTemp.position.x,
+          objectTemp.position.y,
+          objectTemp.position.z,
           camera,
           canvasWidth,
           canvasHeight
         );
-        return { ...object, screenPos: pos };
+        objectsWithId.push({
+          ...objectTemp,
+          screenPos,
+          objectId: doc.id,
+        });
+        if (doc.id !== centerpieceId) {
+          createRoomObject({ scene, toDispose, toRemove })({
+            position: {
+              x: objectTemp.position.x,
+              y: objectTemp.position.y,
+              z: objectTemp.position.z,
+            },
+            id: doc.id,
+          });
+        } else {
+          setCenterpiece(objectTemp);
+        }
       });
-      setRoomObjects(objectsWithOverlay);
+      setRoomObjects(objectsWithId);
     });
 
     const { cleanupUserFigures, updateUserFigures } = setupLiveUsers({
@@ -154,7 +129,7 @@ export const Room = ({ objects = sampleObjects }) => {
     // window.addEventListener("resize", handleResize);
     canvasEl.current.addEventListener("click", onDocumentMouseDown, false);
 
-    const { onMouseMove } = setupHelper({
+    const { onMouseMove, switchHelper } = setupHelper({
       scene,
       renderer,
       camera,
@@ -189,6 +164,16 @@ export const Room = ({ objects = sampleObjects }) => {
       toRemove,
     });
 
+    // add new objects
+    const handleAddNote = () => {
+      const newObject = createRoomObject({ scene, toDispose, toRemove })({
+        position: { x: 20, y: 0, z: 0 },
+        id: "23",
+      });
+      return { newObject, switchHelper, objectsRef, raycastHighlightObjects };
+    };
+    setHandlePlaceNote(() => handleAddNote);
+
     const update = () => {
       updateBlob();
       updateUserFigures();
@@ -214,9 +199,13 @@ export const Room = ({ objects = sampleObjects }) => {
         toDispose[i].dispose();
       }
     };
-  }, []);
+  }, [roomId]);
   return (
     <div ref={canvasEl}>
+      <header className="room-info">
+        <h1>{roomInfo.name}</h1>
+        <h2>{roomInfo.description}</h2>
+      </header>
       <div
         style={{
           backgroundColor: "red",
@@ -231,24 +220,19 @@ export const Room = ({ objects = sampleObjects }) => {
       </div>
       {roomObjects.map((object) => {
         if (object.type === "text") {
-          const {
-            objectId,
-            textContent,
-            screenPos,
-            dialogue,
-            requiresWebMon,
-          } = object;
+          const { objectId, textContent, screenPos, requiresWebMon } = object;
           return (
             <Note
               key={objectId}
               objectId={objectId}
+              roomId={roomId}
               position={screenPos}
               textContent={textContent}
               requiresWebMon={requiresWebMon}
-              dialogue={dialogue}
               maxZ={maxZ}
               setMaxZ={setMaxZ}
               webMonIsActive={webMonIsActive}
+              currentUser={currentUser}
             />
           );
         } else {
@@ -277,13 +261,17 @@ export const Room = ({ objects = sampleObjects }) => {
       </div>
 
       <ImageViewer
-        url="https://drive.google.com/uc?id=1rS-i83VjnNpJOe__0SUw4MxiPWOeyQi8"
+        url={centerpiece.url}
         closeHandler={() => setImageViewerIsOpen(false)}
         maxZ={maxZ}
         setMaxZ={setMaxZ}
         imageViewerIsOpen={imageViewerIsOpen}
+        currentUser={currentUser}
+        objectId={roomInfo.centerpieceId}
+        roomId={roomId}
       />
-      {/* {isCreator && <RoomControls handleAddNote={handleAddNote} />} */}
+
+      <RoomControls handleInitiatePlaceNote={handlePlaceNote} />
     </div>
   );
 };
