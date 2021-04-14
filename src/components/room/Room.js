@@ -238,6 +238,7 @@ export const Room = ({ currentUser }) => {
             roomId={roomId}
             monetizePointer={monetizePointer}
             history={history}
+            maxZ={maxZ}
           />
         )}
         {error !== "none" && error}

@@ -7,6 +7,7 @@ export const RoomControls = ({
   monetizePointer,
   roomId,
   history,
+  maxZ,
 }) => {
   const [noteFormIsOpen, setNoteFormIsOpen] = useState(false);
   const [note, updateNote] = useState("");
@@ -51,7 +52,11 @@ export const RoomControls = ({
   return (
     <React.Fragment>
       {noteFormIsOpen && (
-        <form className="add-note-form" onSubmit={handleSubmit}>
+        <form
+          className="add-note-form"
+          style={{ zIndex: maxZ + 1 }}
+          onSubmit={handleSubmit}
+        >
           <label>write a note:</label>
           <textarea
             className="note-textarea"
