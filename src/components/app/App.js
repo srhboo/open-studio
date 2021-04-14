@@ -57,7 +57,10 @@ const App = () => {
   };
   const NotLoggedIn = () => (
     <Fragment>
-      anonymous |
+      <Link to="/" style={{ paddingRight: "1rem" }}>
+        Home
+      </Link>{" "}
+      | anonymous |
       <button
         type="button"
         style={{ marginRight: "1rem", marginLeft: "1rem" }}
