@@ -33,10 +33,10 @@ export const CreatorControls = ({ currentUser }) => {
         email: currentUser.email,
         setRooms,
       });
-      getNeighbourRooms({ email: currentUser.email }).then((neighbours) => {
-        setNeighbourRooms(neighbours);
-      });
     }
+    getNeighbourRooms({ currentUser }).then((neighbours) => {
+      setNeighbourRooms(neighbours);
+    });
     return () => {
       unsubscribe();
     };

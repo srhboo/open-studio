@@ -99,20 +99,22 @@ export const subscribeToUserRooms = ({ email, setRooms }) => {
     });
 };
 
-export const getNeighbourRooms = ({ email }) => {
-  return db
-    .collection("rooms")
-    .limit(20)
-    .where("creatorId", "!=", email)
-    .get()
-    .then((querySnapshot) => {
-      const neighbourRooms = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        neighbourRooms.push({ ...data, roomId: doc.id });
-      });
-      return neighbourRooms;
+export const getNeighbourRooms = ({ currentUser }) => {
+  const ref =
+    currentUser && currentUser.email
+      ? db
+          .collection("rooms")
+          .limit(20)
+          .where("creatorId", "!=", currentUser.email)
+      : db.collection("rooms").limit(20);
+  return ref.get().then((querySnapshot) => {
+    const neighbourRooms = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      neighbourRooms.push({ ...data, roomId: doc.id });
     });
+    return neighbourRooms;
+  });
 };
 
 export const createRoom = ({ email, auid, roomName, description }) => {
