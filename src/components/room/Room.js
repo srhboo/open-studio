@@ -240,6 +240,7 @@ export const Room = ({ currentUser }) => {
             history={history}
           />
         )}
+        {error !== "none" && error}
       </div>
     </Fragment>
   );

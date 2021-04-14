@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { BLOOM_SCENE } from "./Bloom";
+// import { BLOOM_SCENE } from "./Bloom";
 export const createRoomObject = ({ scene, toDispose, toRemove }) => ({
   position,
   id,
