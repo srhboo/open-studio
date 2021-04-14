@@ -15,12 +15,12 @@ const NoAccessNote = ({ style, maxZ }) => {
       <div
         className={"note-container mini-display no-access"}
         onClick={() => setIsInfoWindowOpen(true)}
-        style={{ ...style, zIndex: maxZ }}
+        style={{ ...style }}
       >
         ??
       </div>
       {isInfoWindowOpen && (
-        <div className="web-mon-info">
+        <div className="web-mon-info" style={{ zIndex: maxZ + 1 }}>
           <a
             href="https://webmonetization.org/"
             target="_blank"
@@ -38,13 +38,15 @@ const NoAccessNote = ({ style, maxZ }) => {
 };
 
 export const Note = ({
-  noteId,
-  text,
+  objectId,
+  roomId,
+  textContent,
   position,
   maxZ,
   setMaxZ,
   requiresWebMon,
-  webMonIsActive = false,
+  dialogue,
+  currentUser,
 }) => {
   const [noteDisplay, setNoteDisplay] = useState(NOTE_STATUS.MINI);
   const [zIndex, setZIndex] = useState(0);
@@ -64,11 +66,14 @@ export const Note = ({
     zIndex,
   };
   const noteExpandedDisplayPosition = { left: "50%", top: "50%", zIndex };
-  const noAccess = requiresWebMon && !webMonIsActive;
+  const isMonetized =
+    document.monetization && document.monetization.state === "started";
+  const noAccess = requiresWebMon && !isMonetized;
+
   return (
     <React.Fragment>
       {noAccess ? (
-        <NoAccessNote style={noteNormalDisplayPosition} />
+        <NoAccessNote style={noteNormalDisplayPosition} maxZ={maxZ} />
       ) : (
         <div
           className={`note-container${
@@ -82,7 +87,7 @@ export const Note = ({
           onClick={handleNoteClick}
         >
           <div className="note">
-            <div className="note-text">{text}</div>
+            <div className="note-text">{textContent}</div>
             <div className="display-buttons">
               <button
                 type="button"
@@ -112,7 +117,12 @@ export const Note = ({
             </div>
           </div>
           {noteDisplay === NOTE_STATUS.EXPANDED && (
-            <Dialogue dialogueList={[]} />
+            <Dialogue
+              dialogueList={dialogue}
+              objectId={objectId}
+              roomId={roomId}
+              currentUser={currentUser}
+            />
           )}
         </div>
       )}

@@ -1,63 +1,120 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Link, useHistory } from "react-router-dom";
 import "./CreatorControls.css";
-import { PointerForm } from "../pointer-form/PointerForm";
+import {
+  createRoom,
+  subscribeToUserRooms,
+  getNeighbourRooms,
+} from "../../utils/firebase/firebase-auth";
+import { Modal } from "../modal/Modal";
 
-export const CreatorControls = ({ handleAddNote = () => {} }) => {
-  const [noteFormIsOpen, setNoteFormIsOpen] = useState(false);
-  const [note, updateNote] = useState("");
-  const [requiresWebMon, setRequiresWebMon] = useState(false);
+const Separator = () => (
+  <div style={{ marginBottom: "2rem" }}>
+    <div>...</div>
+    <div>...</div>
+    <div>...</div>
+    <div>...</div>
+  </div>
+);
 
-  // DELETE DEFAULT LATER
-  const [webMonPointer, setWebMonPointer] = useState("s3s3AHF0");
+export const CreatorControls = ({ currentUser }) => {
+  const [showRoomForm, setShowRoomForm] = useState(false);
+  const [roomName, setRoomName] = useState("");
+  const [description, setDescription] = useState("");
+  const [rooms, setRooms] = useState([]);
+  const [neighbourRooms, setNeighbourRooms] = useState([]);
 
-  const handleSubmit = (e) => {
+  const history = useHistory();
+
+  useEffect(() => {
+    let unsubscribe = () => {};
+    if (currentUser && currentUser.email) {
+      unsubscribe = subscribeToUserRooms({
+        email: currentUser.email,
+        setRooms,
+      });
+      getNeighbourRooms({ email: currentUser.email }).then((neighbours) => {
+        setNeighbourRooms(neighbours);
+      });
+    }
+    return () => {
+      unsubscribe();
+    };
+  }, [setRooms, currentUser]);
+
+  const handleSubmitCreateRoom = (e) => {
     e.preventDefault();
-    handleAddNote({ note, requiresWebMon });
-    setNoteFormIsOpen(false);
+    const { auid, email } = currentUser;
+    createRoom({ email, auid, roomName, description })
+      .then((roomId) => {
+        history.push(`/r/${roomId}`);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
-  const webMonUnavailable = !webMonPointer;
   return (
-    <React.Fragment>
-      {noteFormIsOpen && (
-        <form className="add-note-form" onSubmit={handleSubmit}>
-          <label>write a note:</label>
-          <textarea
-            className="note-textarea"
-            value={note}
-            onChange={(e) => updateNote(e.target.value)}
-          />
-          <div className={`${webMonUnavailable ? "unavailable" : ""}`}>
-            <input
-              type="checkbox"
-              checked={requiresWebMon}
-              onChange={() => setRequiresWebMon(!requiresWebMon)}
-              disabled={webMonUnavailable}
-            />
-            <label>requires web monetization to view</label>
-          </div>
-
-          <button type="submit">save</button>
-        </form>
+    <div className="creator-controls-container">
+      {showRoomForm && (
+        <Modal>
+          <form id="create-room-form" onSubmit={handleSubmitCreateRoom}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                marginBottom: "1rem",
+              }}
+            >
+              Room Name:
+              <input
+                type="text"
+                value={roomName}
+                onChange={(e) => setRoomName(e.target.value)}
+              />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                marginBottom: "2rem",
+              }}
+            >
+              Room Description:
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+            <button type="submit">let's do it!</button>
+          </form>
+        </Modal>
       )}
-      <div className="creator-panel">
-        <h2>creator panel</h2>
-        <div className="creator-panel-section">
-          <h3>actions</h3>
-          <button type="button" onClick={() => setNoteFormIsOpen(true)}>
-            add note
-          </button>
-        </div>
-        <div className="creator-panel-section">
-          <h3>settings</h3>
-          <div>
-            {webMonUnavailable ? (
-              <PointerForm handleSavePointer={(id) => setWebMonPointer(id)} />
-            ) : (
-              `pointer: ${webMonPointer}`
-            )}
-          </div>
-        </div>
+      <div className="rooms-list-container white-border">
+        <h1>My Rooms</h1>
+        <ul>
+          {rooms.map(({ roomName, roomId }) => (
+            <li key={roomId}>
+              - <Link to={`/r/${roomId}`}>{roomName}</Link>
+            </li>
+          ))}
+        </ul>
+        <Separator />
+        <button type="button" onClick={() => setShowRoomForm(true)}>
+          Create a room
+        </button>
       </div>
-    </React.Fragment>
+      <div className="rooms-list-container other-border">
+        <h1>Neighbour Rooms</h1>
+        <ul>
+          {neighbourRooms.length === 0 ? `no rooms to show :(` : ""}
+          {neighbourRooms.map(({ roomName, roomId }) => (
+            <li key={roomId}>
+              - <Link to={`/r/${roomId}`}>{roomName}</Link>
+            </li>
+          ))}
+        </ul>
+        <Separator />
+      </div>
+    </div>
   );
 };

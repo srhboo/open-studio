@@ -3,6 +3,9 @@ import ReactDOM from "react-dom";
 import "./index.css";
 import App from "./components/app/App.js";
 import reportWebVitals from "./reportWebVitals";
+import { initializeFirebase } from "./utils/firebase/initialize";
+
+export const db = initializeFirebase();
 
 ReactDOM.render(
   <React.StrictMode>

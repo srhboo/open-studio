@@ -1,0 +1,14 @@
+body {
+  background-color: white;
+}
+.user-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.form-error {
+  color: red;
+  text-align: left;
+  padding: 1rem;
+  font-size: 0.8rem;
+}
