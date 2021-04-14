@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Note.css";
 import { Dialogue } from "../dialogue/Dialogue";
 
@@ -50,6 +50,18 @@ export const Note = ({
 }) => {
   const [noteDisplay, setNoteDisplay] = useState(NOTE_STATUS.MINI);
   const [zIndex, setZIndex] = useState(0);
+  const [monetizationState, setMonetizationState] = useState("stopped");
+  useEffect(() => {
+    const setStart = () => setMonetizationState("started");
+    const setStop = () => setMonetizationState("stopped");
+    document.monetization.addEventListener("monetizationstart", setStart);
+    document.monetization.addEventListener("monetizationstop", setStop);
+
+    return () => {
+      document.monetization.removeEventListener("monetizationstart", setStart);
+      document.monetization.removeEventListener("monetizationsttop", setStop);
+    };
+  });
   const handleNoteClick = () => {
     if (noteDisplay === NOTE_STATUS.MINI) {
       setNoteDisplay(NOTE_STATUS.NORMAL);
@@ -66,8 +78,7 @@ export const Note = ({
     zIndex,
   };
   const noteExpandedDisplayPosition = { left: "50%", top: "50%", zIndex };
-  const isMonetized =
-    document.monetization && document.monetization.state === "started";
+  const isMonetized = monetizationState === "started";
   const noAccess = requiresWebMon && !isMonetized;
 
   return (
