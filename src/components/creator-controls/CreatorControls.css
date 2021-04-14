@@ -32,3 +32,11 @@ h1 {
   padding: 0 1rem;
   max-width: 10rem;
 }
+.access-info {
+  position: absolute;
+  color: white;
+  background-color: black;
+  text-align: left;
+  margin-top: 5rem;
+  padding: 0 2rem;
+}

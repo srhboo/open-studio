@@ -58,10 +58,18 @@ const App = () => {
   const NotLoggedIn = () => (
     <Fragment>
       anonymous |
-      <button type="button" onClick={() => setModalStatus("login")}>
+      <button
+        type="button"
+        style={{ marginRight: "1rem", marginLeft: "1rem" }}
+        onClick={() => setModalStatus("login")}
+      >
         login
       </button>
-      <button type="button" onClick={() => setModalStatus("register")}>
+      <button
+        type="button"
+        style={{ marginRight: "1rem" }}
+        onClick={() => setModalStatus("register")}
+      >
         register
       </button>
     </Fragment>
