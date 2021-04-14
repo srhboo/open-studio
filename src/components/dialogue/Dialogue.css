@@ -30,3 +30,6 @@
   min-width: 15rem;
   border: 2px solid white;
 }
+textarea.note-textarea {
+  height: 10rem;
+}

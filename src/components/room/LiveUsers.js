@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { socket } from "../../utils/socketio";
-import { isEmpty } from "../../utils/misc";
 import { UserFigure } from "./UserFigure";
 import { BLOOM_SCENE } from "./Bloom";
 
@@ -33,7 +32,7 @@ const createUserSphere = ({ scene, userFigures, toDispose }) => ({
   return userSphere;
 };
 
-export const setupLiveUsers = ({ scene, toDispose }) => {
+export const setupLiveUsers = ({ scene, toDispose, roomId }) => {
   const userFigures = {};
 
   const createUserSphereWithScene = createUserSphere({
@@ -42,33 +41,39 @@ export const setupLiveUsers = ({ scene, toDispose }) => {
     toDispose,
   });
 
-  socket.on("user connected", function ({ usersOnline, connectedUser }) {
-    console.log("user connected");
-    if (userFigures && isEmpty(userFigures)) {
-      for (let i = 0; i < usersOnline.length; i++) {
-        const user = usersOnline[i];
-        createUserSphereWithScene(user);
-      }
-    } else {
+  socket.on("user connected", function ({ connectedUser }) {
+    if (!userFigures[connectedUser.id]) {
       createUserSphereWithScene(connectedUser);
     }
   });
+
   socket.on("user disconnected", function ({ disconnectedUser }) {
     const figure = userFigures[disconnectedUser.id];
-    figure.clean(scene);
-    delete userFigures[disconnectedUser.id];
+    if (figure) {
+      figure.clean(scene);
+      delete userFigures[disconnectedUser.id];
+    }
   });
+
   socket.on("user destination", ({ id, position }) => {
     const figure = userFigures[id];
-    console.log(position);
     figure.setDestination(position);
+  });
+
+  socket.emit("joined room", { roomId }, ({ usersOnline }) => {
+    for (let i = 0; i < usersOnline.length; i++) {
+      const user = usersOnline[i];
+      createUserSphereWithScene(user);
+    }
   });
 
   const cleanupUserFigures = () => {
     for (const [id, figure] of Object.entries(userFigures)) {
       figure.clean(scene);
-      userFigures[id] = null;
+      delete userFigures[id];
     }
+    socket.emit("left room", { roomId });
+    socket.removeAllListeners();
   };
 
   const updateUserFigures = () => {

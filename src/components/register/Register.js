@@ -1,5 +1,4 @@
-import firebase from "firebase/app";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createUser } from "../../utils/firebase/firebase-auth";
 import "../login/Login.css";
 

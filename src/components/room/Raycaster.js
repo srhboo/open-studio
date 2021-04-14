@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { socket } from "../../utils/socketio";
 
-export const setupRaycaster = () => {
+export const setupRaycaster = ({ roomId }) => {
   const raycaster = new THREE.Raycaster();
   // const mouse = new THREE.Vector2();
   const raycastHelperObjects = [];
@@ -25,7 +25,7 @@ export const setupRaycaster = () => {
       } else if (intersectsPosition.length > 0) {
         // update position if floor
         const intersectionPoint = intersectsPosition[0].point;
-        socket.emit("new destination", { position: intersectionPoint });
+        socket.emit("new destination", { position: intersectionPoint, roomId });
       }
     }
   };

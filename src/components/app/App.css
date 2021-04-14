@@ -7,6 +7,10 @@
   pointer-events: none;
 }
 
+body {
+  font-family: "Courier New", Courier, monospace;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -40,8 +44,26 @@
 .user-nav {
   position: absolute;
   color: white;
-  width: 1200px;
+  width: 100%;
+  max-width: 1200px;
   display: flex;
   justify-content: flex-end;
   background-color: black;
+  padding-top: 1rem;
+}
+
+a:visited {
+  color: white;
+}
+
+button {
+  font-family: "Courier New", Courier, monospace;
+  border: 1px solid yellow;
+  background-color: black;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+button:hover {
+  border-color: red;
 }

@@ -1,16 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { deleteRoom } from "../../utils/firebase/firebase-auth";
 import "./RoomControls.css";
-import { PointerForm } from "../pointer-form/PointerForm";
-import { db } from "../../index";
 
-export const RoomControls = ({ handleInitiatePlaceNote, setNoteToCreate }) => {
-  console.log("loaded");
+export const RoomControls = ({
+  handleInitiatePlaceNote,
+  monetizePointer,
+  roomId,
+  history,
+}) => {
   const [noteFormIsOpen, setNoteFormIsOpen] = useState(false);
   const [note, updateNote] = useState("");
   const [requiresWebMon, setRequiresWebMon] = useState(false);
 
-  // DELETE DEFAULT LATER
-  const [webMonPointer, setWebMonPointer] = useState("s3s3AHF0");
+  const handleDeleteRoom = ({ roomId }) => {
+    deleteRoom({ roomId }).then(() => {
+      history.push("/");
+    });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -25,16 +31,12 @@ export const RoomControls = ({ handleInitiatePlaceNote, setNoteToCreate }) => {
         .add({
           type: "text",
           textContent: note,
-          dialogue: [],
           requiresWebMon,
           position: {
             x: newObject.position.x,
             y: newObject.position.y,
             z: newObject.position.z,
           },
-        })
-        .then((docRef) => {
-          console.log("Document written with ID: ", docRef.id);
         })
         .catch((error) => {
           console.error("Error adding document: ", error);
@@ -45,7 +47,7 @@ export const RoomControls = ({ handleInitiatePlaceNote, setNoteToCreate }) => {
     switchHelper(newObject);
     setNoteFormIsOpen(false);
   };
-  const webMonUnavailable = !webMonPointer;
+  const webMonUnavailable = !monetizePointer;
   return (
     <React.Fragment>
       {noteFormIsOpen && (
@@ -79,13 +81,9 @@ export const RoomControls = ({ handleInitiatePlaceNote, setNoteToCreate }) => {
         </div>
         <div className="room-panel-section">
           <h3>settings</h3>
-          <div>
-            {webMonUnavailable ? (
-              <PointerForm handleSavePointer={(id) => setWebMonPointer(id)} />
-            ) : (
-              `pointer: ${webMonPointer}`
-            )}
-          </div>
+          <button type="button" onClick={() => handleDeleteRoom({ roomId })}>
+            delete room
+          </button>
         </div>
       </div>
     </React.Fragment>

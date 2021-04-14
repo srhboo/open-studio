@@ -46,7 +46,6 @@ export const Note = ({
   setMaxZ,
   requiresWebMon,
   dialogue,
-  webMonIsActive = false,
   currentUser,
 }) => {
   const [noteDisplay, setNoteDisplay] = useState(NOTE_STATUS.MINI);
@@ -67,7 +66,10 @@ export const Note = ({
     zIndex,
   };
   const noteExpandedDisplayPosition = { left: "50%", top: "50%", zIndex };
-  const noAccess = requiresWebMon && !webMonIsActive;
+  const isMonetized =
+    document.monetization && document.monetization.state === "started";
+  const noAccess = requiresWebMon && !isMonetized;
+
   return (
     <React.Fragment>
       {noAccess ? (

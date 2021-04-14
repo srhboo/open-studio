@@ -1,40 +1,39 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useRef, useState, Fragment } from "react";
+import { Helmet } from "react-helmet-async";
+import { useParams, useHistory } from "react-router-dom";
 import * as THREE from "three";
 import "./Room.css";
 import { ImageViewer } from "../image-viewer/ImageViewer";
 import { RoomControls } from "../room-controls/RoomControls";
 import { Note } from "../note/Note";
 import { addEnvironment } from "./Environment";
-import { createVector } from "./DrawRoom";
 import { setupLiveUsers } from "./LiveUsers";
 import { disposeMaterial, setupBloom } from "./Bloom";
 import { createBlob } from "./Blob";
 import { setupHelper } from "./Helper";
 import { setupRaycaster } from "./Raycaster";
-import { db } from "../../index";
 import { createRoomObject } from "./RoomObject";
+import { setupRoomData } from "./RoomData";
 
 export const Room = ({ currentUser }) => {
   const canvasEl = useRef(null);
 
   const { roomId } = useParams();
-
-  const [isCreator, setIsCreator] = useState(true);
-  const [webMonIsActive, setWebMonIsActive] = useState(false);
+  const [creatorUsername, setCreatorUsername] = useState("true");
   const [imageViewerIsOpen, setImageViewerIsOpen] = useState(false);
   const [roomObjects, setRoomObjects] = useState([]);
   const [maxZ, setMaxZ] = useState(1);
   const [handlePlaceNote, setHandlePlaceNote] = useState(null);
   const [roomInfo, setRoomInfo] = useState({
-    name: "",
+    roomName: "",
     description: "",
     centerpieceId: "",
   });
   const [centerpiece, setCenterpiece] = useState({ url: "" });
   const [error, setError] = useState("none");
-
   const [cubePos, setCubePos] = useState({ x: 50, y: 50 });
+  const [monetizePointer, setMonetizePointer] = useState(null);
+  const history = useHistory();
 
   useEffect(() => {
     // three js clean-up
@@ -48,7 +47,7 @@ export const Room = ({ currentUser }) => {
       raycastHighlightObjects,
       onDocumentMouseDown,
       raycaster,
-    } = setupRaycaster();
+    } = setupRaycaster({ roomId });
 
     // canvas, scene, camera, renderer setup
     const canvasWidth = 1200;
@@ -70,57 +69,30 @@ export const Room = ({ currentUser }) => {
     let renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(canvasWidth, canvasHeight);
 
-    // get data
-    const room = db.collection("rooms").doc(roomId);
-    let centerpieceId = "";
-    room.get().then((doc) => {
-      if (doc.exists) {
-        const data = doc.data();
-        setRoomInfo(data);
-        centerpieceId = data.centerpieceId;
-      } else {
-        setError("not-found");
-      }
+    const createRoomObjectWithScene = createRoomObject({
+      scene,
+      toDispose,
+      toRemove,
     });
-    const objectsRef = room.collection("objects");
 
-    objectsRef.onSnapshot((querySnapshot) => {
-      console.log("Changed");
-      const objectsWithId = [];
-      querySnapshot.forEach((doc) => {
-        const objectTemp = doc.data();
-        const screenPos = createVector(
-          objectTemp.position.x,
-          objectTemp.position.y,
-          objectTemp.position.z,
-          camera,
-          canvasWidth,
-          canvasHeight
-        );
-        objectsWithId.push({
-          ...objectTemp,
-          screenPos,
-          objectId: doc.id,
-        });
-        if (doc.id !== centerpieceId) {
-          createRoomObject({ scene, toDispose, toRemove })({
-            position: {
-              x: objectTemp.position.x,
-              y: objectTemp.position.y,
-              z: objectTemp.position.z,
-            },
-            id: doc.id,
-          });
-        } else {
-          setCenterpiece(objectTemp);
-        }
-      });
-      setRoomObjects(objectsWithId);
+    const { objectsRef, unsubscribeObjects } = setupRoomData({
+      roomId,
+      setRoomInfo,
+      setError,
+      setMonetizePointer,
+      camera,
+      canvasWidth,
+      canvasHeight,
+      createRoomObjectWithScene,
+      setCenterpiece,
+      setRoomObjects,
+      setCreatorUsername,
     });
 
     const { cleanupUserFigures, updateUserFigures } = setupLiveUsers({
       scene,
       toDispose,
+      roomId,
     });
 
     const { render } = setupBloom({ scene, camera, renderer });
@@ -166,7 +138,7 @@ export const Room = ({ currentUser }) => {
 
     // add new objects
     const handleAddNote = () => {
-      const newObject = createRoomObject({ scene, toDispose, toRemove })({
+      const newObject = createRoomObjectWithScene({
         position: { x: 20, y: 0, z: 0 },
         id: "23",
       });
@@ -198,80 +170,77 @@ export const Room = ({ currentUser }) => {
       for (let i = 0; i < toDispose.length; i++) {
         toDispose[i].dispose();
       }
+
+      unsubscribeObjects();
     };
   }, [roomId]);
+
+  const currentUserIsCreator =
+    currentUser && currentUser.email === roomInfo.creatorId;
+
   return (
-    <div ref={canvasEl}>
-      <header className="room-info">
-        <h1>{roomInfo.name}</h1>
-        <h2>{roomInfo.description}</h2>
-      </header>
-      <div
-        style={{
-          backgroundColor: "red",
-          width: 20,
-          height: 20,
-          position: "absolute",
-          left: cubePos.x,
-          top: cubePos.y,
-        }}
-      >
-        test
-      </div>
-      {roomObjects.map((object) => {
-        if (object.type === "text") {
-          const { objectId, textContent, screenPos, requiresWebMon } = object;
-          return (
-            <Note
-              key={objectId}
-              objectId={objectId}
-              roomId={roomId}
-              position={screenPos}
-              textContent={textContent}
-              requiresWebMon={requiresWebMon}
-              maxZ={maxZ}
-              setMaxZ={setMaxZ}
-              webMonIsActive={webMonIsActive}
-              currentUser={currentUser}
-            />
-          );
-        } else {
-          return "";
-        }
-      })}
-      <div className="ui-controls">
-        <div>
-          <input
-            type="checkbox"
-            name="creator"
-            checked={isCreator}
-            onChange={() => setIsCreator(!isCreator)}
-          />
-          <label htmlFor="creator">IS CREATOR VIEW</label>
+    <Fragment>
+      <Helmet>
+        <meta name="monetization" content={monetizePointer} />
+      </Helmet>
+      <div ref={canvasEl}>
+        <header className="room-info">
+          <h1>{roomInfo.roomName}</h1>
+          <h2>{roomInfo.description}</h2>
+          <div>{`by: ${creatorUsername}`}</div>
+        </header>
+        <div
+          style={{
+            backgroundColor: "red",
+            width: 20,
+            height: 20,
+            position: "absolute",
+            left: cubePos.x,
+            top: cubePos.y,
+          }}
+        >
+          centerpiece
         </div>
-        <div>
-          <input
-            type="checkbox"
-            name="creator"
-            checked={webMonIsActive}
-            onChange={() => setWebMonIsActive(!webMonIsActive)}
+        {roomObjects.map((object) => {
+          if (object.type === "text") {
+            const { objectId, textContent, screenPos, requiresWebMon } = object;
+            return (
+              <Note
+                key={objectId}
+                objectId={objectId}
+                roomId={roomId}
+                position={screenPos}
+                textContent={textContent}
+                requiresWebMon={requiresWebMon}
+                maxZ={maxZ}
+                setMaxZ={setMaxZ}
+                currentUser={currentUser}
+              />
+            );
+          } else {
+            return "";
+          }
+        })}
+        <ImageViewer
+          url={centerpiece.url}
+          closeHandler={() => setImageViewerIsOpen(false)}
+          maxZ={maxZ}
+          setMaxZ={setMaxZ}
+          imageViewerIsOpen={imageViewerIsOpen}
+          currentUser={currentUser}
+          objectId={roomInfo.centerpieceId}
+          roomId={roomId}
+        />
+
+        {currentUserIsCreator && (
+          <RoomControls
+            handleInitiatePlaceNote={handlePlaceNote}
+            roomId={roomId}
+            monetizePointer={monetizePointer}
+            history={history}
           />
-          <label htmlFor="creator">WEB MONETIZATION ACCESS</label>
-        </div>
+        )}
       </div>
-
-      <ImageViewer
-        url={centerpiece.url}
-        closeHandler={() => setImageViewerIsOpen(false)}
-        maxZ={maxZ}
-        setMaxZ={setMaxZ}
-        imageViewerIsOpen={imageViewerIsOpen}
-        currentUser={currentUser}
-        objectId={roomInfo.centerpieceId}
-        roomId={roomId}
-      />
-
-      <RoomControls handleInitiatePlaceNote={handlePlaceNote} />
-    </div>
+    </Fragment>
   );
 };

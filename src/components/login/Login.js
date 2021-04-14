@@ -1,8 +1,6 @@
-import firebase from "firebase/app";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { loginUser } from "../../utils/firebase/firebase-auth";
 import "./Login.css";
-const rooms = [];
 
 export const Login = ({ handleLoginSuccess }) => {
   const [email, setEmail] = useState("");

@@ -1,29 +1,119 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useHistory } from "react-router-dom";
 import "./CreatorControls.css";
-import { PointerForm } from "../pointer-form/PointerForm";
+import {
+  createRoom,
+  subscribeToUserRooms,
+  getNeighbourRooms,
+} from "../../utils/firebase/firebase-auth";
+import { Modal } from "../modal/Modal";
 
-const defaultRooms = [
-  {
-    roomId: "sadfsdf34",
-    userId: "srhboo@gmail.com",
-    roomName: "my first room",
-    description: "trying out my first room",
-  },
-];
+const Separator = () => (
+  <div style={{ marginBottom: "2rem" }}>
+    <div>...</div>
+    <div>...</div>
+    <div>...</div>
+    <div>...</div>
+  </div>
+);
 
-export const CreatorControls = ({ myRooms = defaultRooms, user }) => {
+export const CreatorControls = ({ currentUser }) => {
+  const [showRoomForm, setShowRoomForm] = useState(false);
+  const [roomName, setRoomName] = useState("");
+  const [description, setDescription] = useState("");
+  const [rooms, setRooms] = useState([]);
+  const [neighbourRooms, setNeighbourRooms] = useState([]);
+
+  const history = useHistory();
+
+  useEffect(() => {
+    let unsubscribe = () => {};
+    if (currentUser && currentUser.email) {
+      unsubscribe = subscribeToUserRooms({
+        email: currentUser.email,
+        setRooms,
+      });
+      getNeighbourRooms({ email: currentUser.email }).then((neighbours) => {
+        setNeighbourRooms(neighbours);
+      });
+    }
+    return () => {
+      unsubscribe();
+    };
+  }, [setRooms, currentUser]);
+
+  const handleSubmitCreateRoom = (e) => {
+    e.preventDefault();
+    const { auid, email } = currentUser;
+    createRoom({ email, auid, roomName, description })
+      .then((roomId) => {
+        history.push(`/r/${roomId}`);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
   return (
     <div className="creator-controls-container">
-      <div className="rooms-list-container">
-        <h2>My Rooms</h2>
+      {showRoomForm && (
+        <Modal>
+          <form id="create-room-form" onSubmit={handleSubmitCreateRoom}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                marginBottom: "1rem",
+              }}
+            >
+              Room Name:
+              <input
+                type="text"
+                value={roomName}
+                onChange={(e) => setRoomName(e.target.value)}
+              />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                marginBottom: "2rem",
+              }}
+            >
+              Room Description:
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+            <button type="submit">let's do it!</button>
+          </form>
+        </Modal>
+      )}
+      <div className="rooms-list-container white-border">
+        <h1>My Rooms</h1>
         <ul>
-          {myRooms.map(({ roomName, roomId }) => (
+          {rooms.map(({ roomName, roomId }) => (
             <li key={roomId}>
-              <Link to={`/r/${roomId}`}>{roomName}</Link>
+              - <Link to={`/r/${roomId}`}>{roomName}</Link>
             </li>
           ))}
         </ul>
+        <Separator />
+        <button type="button" onClick={() => setShowRoomForm(true)}>
+          Create a room
+        </button>
+      </div>
+      <div className="rooms-list-container other-border">
+        <h1>Neighbour Rooms</h1>
+        <ul>
+          {neighbourRooms.length === 0 ? `no rooms to show :(` : ""}
+          {neighbourRooms.map(({ roomName, roomId }) => (
+            <li key={roomId}>
+              - <Link to={`/r/${roomId}`}>{roomName}</Link>
+            </li>
+          ))}
+        </ul>
+        <Separator />
       </div>
     </div>
   );

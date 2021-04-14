@@ -2,7 +2,6 @@ import firebase from "firebase";
 import "firebase/firestore";
 
 export const initializeFirebase = () => {
-  console.log("initialized");
   const firebaseConfig = {
     apiKey: "AIzaSyASQg5GfleiuvqPMhqLyYtQfre4FlW3hyM",
     authDomain: "rooms-bdca3.firebaseapp.com",

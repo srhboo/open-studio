@@ -1,14 +1,18 @@
 import { useState, Fragment, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { Room } from "../room/Room.js";
 import { CreatorControls } from "../creator-controls/CreatorControls";
 import { Login } from "../login/Login";
 import { Register } from "../register/Register";
 import { Modal } from "../modal/Modal";
+import { PointerForm } from "../pointer-form/PointerForm";
 import {
   logoutUser,
   setUpAuthObserver,
-  getUserRecord,
+  subscribeToUserRecord,
+  updateUserRecord,
 } from "../../utils/firebase/firebase-auth";
 import "./App.css";
 
@@ -16,8 +20,11 @@ const App = () => {
   const [currentUser, setCurrentUser] = useState(null);
   useEffect(() => {
     const handleOnSignedIn = ({ user }) => {
-      getUserRecord({ email: user.email }).then(({ user: userRecord }) => {
-        setCurrentUser(userRecord);
+      subscribeToUserRecord({
+        email: user.email,
+        handleUpdate: ({ user: userRecord }) => {
+          setCurrentUser(userRecord);
+        },
       });
     };
     setUpAuthObserver({
@@ -40,6 +47,14 @@ const App = () => {
         console.log(error);
       });
   };
+  const handleUpdatePointer = (pointer) => {
+    updateUserRecord({
+      toUpdate: { webMonPointer: pointer },
+      email: currentUser.email,
+    }).then(() => {
+      setModalStatus("hidden");
+    });
+  };
   const NotLoggedIn = () => (
     <Fragment>
       anonymous |
@@ -52,40 +67,71 @@ const App = () => {
     </Fragment>
   );
   const LoggedIn = () => (
-    <Fragment>
-      {`logged in as ${currentUser.username} | `}
-      <button type="button" onClick={handleLogout}>
-        log out?
-      </button>
-    </Fragment>
-  );
-
-  return (
-    <Router>
-      <div className="App">
-        {modalStatus === "login" && (
-          <Modal>
-            <Login handleLoginSuccess={handleSuccess} />
-          </Modal>
-        )}
-        {modalStatus === "register" && (
-          <Modal>
-            <Register handleRegisterSuccess={handleSuccess} />
-          </Modal>
-        )}
-        <div className="user-nav">
-          {!!currentUser ? <LoggedIn /> : <NotLoggedIn />}
-        </div>
-        <Switch>
-          <Route path="/r/:roomId">
-            <Room currentUser={currentUser} />
-          </Route>
-          <Route path="/">
-            <CreatorControls />
-          </Route>
-        </Switch>
+    <div>
+      <div>
+        {`logged in as ${currentUser.username} | `}
+        <Link to="/">Home</Link>
+        <button
+          type="button"
+          style={{ marginRight: "1rem", marginLeft: "1rem" }}
+          onClick={() => setModalStatus("user-settings")}
+        >
+          settings
+        </button>
+        <button
+          type="button"
+          style={{ marginRight: "1rem" }}
+          onClick={handleLogout}
+        >
+          log out?
+        </button>
       </div>
-    </Router>
+    </div>
+  );
+  const CloseModalButton = () => (
+    <button type="button" onClick={() => setModalStatus("hidden")}>
+      close
+    </button>
+  );
+  return (
+    <HelmetProvider>
+      <Router>
+        <div className="App">
+          {modalStatus === "login" && (
+            <Modal>
+              <Login handleLoginSuccess={handleSuccess} />
+              <CloseModalButton />
+            </Modal>
+          )}
+          {modalStatus === "register" && (
+            <Modal>
+              <Register handleRegisterSuccess={handleSuccess} />
+              <CloseModalButton />
+            </Modal>
+          )}
+          {modalStatus === "user-settings" && (
+            <Modal>
+              <PointerForm
+                handleSavePointer={handleUpdatePointer}
+                currentPointer={currentUser.webMonPointer}
+              />
+              <CloseModalButton />
+            </Modal>
+          )}
+          <div className="user-nav">
+            {!!currentUser ? <LoggedIn /> : <NotLoggedIn />}
+          </div>
+          <Switch>
+            <Route path="/r/:roomId">
+              <Room currentUser={currentUser} />
+            </Route>
+            <Route path="/">
+              <CreatorControls currentUser={currentUser} />
+            </Route>
+          </Switch>
+        </div>
+      </Router>
+    </HelmetProvider>
   );
 };
 
