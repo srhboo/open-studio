@@ -54,12 +54,19 @@ export const Note = ({
   useEffect(() => {
     const setStart = () => setMonetizationState("started");
     const setStop = () => setMonetizationState("stopped");
-    document.monetization.addEventListener("monetizationstart", setStart);
-    document.monetization.addEventListener("monetizationstop", setStop);
+    if (document.monetization) {
+      document.monetization.addEventListener("monetizationstart", setStart);
+      document.monetization.addEventListener("monetizationstop", setStop);
+    }
 
     return () => {
-      document.monetization.removeEventListener("monetizationstart", setStart);
-      document.monetization.removeEventListener("monetizationsttop", setStop);
+      if (document.monetization) {
+        document.monetization.removeEventListener(
+          "monetizationstart",
+          setStart
+        );
+        document.monetization.removeEventListener("monetizationsttop", setStop);
+      }
     };
   });
   const handleNoteClick = () => {
