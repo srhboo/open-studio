@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { Room } from "../room/Room.js";
+import { Neighbourhood } from "../neighbourhood/Neighbourhood";
 import { CreatorControls } from "../creator-controls/CreatorControls";
 import { Login } from "../login/Login";
 import { Register } from "../register/Register";
@@ -135,6 +136,9 @@ const App = () => {
           <Switch>
             <Route path="/r/:roomId">
               <Room currentUser={currentUser} />
+            </Route>
+            <Route path="/neighbourhood">
+              <Neighbourhood currentUser={currentUser} />
             </Route>
             <Route path="/">
               <CreatorControls currentUser={currentUser} />

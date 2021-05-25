@@ -37,6 +37,7 @@ export const Room = ({ currentUser }) => {
 
   useEffect(() => {
     // three js clean-up
+    console.log("rerender");
     const toRemove = [];
     const toDispose = [];
 

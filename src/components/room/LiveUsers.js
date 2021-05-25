@@ -3,34 +3,36 @@ import { socket } from "../../utils/socketio";
 import { UserFigure } from "./UserFigure";
 import { BLOOM_SCENE } from "./Bloom";
 
-const createUserSphere = ({ scene, userFigures, toDispose }) => ({
-  position,
-  id,
-}) => {
-  const userSphereGeometry = new THREE.SphereGeometry(1.5, 4, 4);
-  const color = new THREE.Color();
-  color.setHSL(Math.random(), 0.7, Math.random() * 0.2 + 0.05);
+// TODO: this code is duplicated in the neighbourhood folder.
+// refactor
 
-  const userSphereMaterial = new THREE.MeshBasicMaterial({ color: color });
+const createUserSphere =
+  ({ scene, userFigures, toDispose }) =>
+  ({ position, id }) => {
+    const userSphereGeometry = new THREE.SphereGeometry(1.5, 4, 4);
+    const color = new THREE.Color();
+    color.setHSL(Math.random(), 0.7, Math.random() * 0.2 + 0.05);
 
-  const userSphere = new THREE.Mesh(userSphereGeometry, userSphereMaterial);
-  userSphere.position.x = position.x;
-  userSphere.position.y = position.y;
-  userSphere.position.z = position.z;
-  userSphere.layers.enable(BLOOM_SCENE);
+    const userSphereMaterial = new THREE.MeshBasicMaterial({ color: color });
 
-  // userSphere.callback = function () {
-  //   setImageViewerIsOpen(true);
-  // };
-  const figure = new UserFigure(userSphere);
-  scene.add(userSphere);
+    const userSphere = new THREE.Mesh(userSphereGeometry, userSphereMaterial);
+    userSphere.position.x = position.x;
+    userSphere.position.y = position.y;
+    userSphere.position.z = position.z;
+    userSphere.layers.enable(BLOOM_SCENE);
 
-  // class has own clean method
-  userFigures[id] = figure;
-  toDispose.push(userSphereGeometry);
-  toDispose.push(userSphereMaterial);
-  return userSphere;
-};
+    // userSphere.callback = function () {
+    //   setImageViewerIsOpen(true);
+    // };
+    const figure = new UserFigure(id, userSphere);
+    scene.add(userSphere);
+
+    // class has own clean method
+    userFigures[id] = figure;
+    toDispose.push(userSphereGeometry);
+    toDispose.push(userSphereMaterial);
+    return userSphere;
+  };
 
 export const setupLiveUsers = ({ scene, toDispose, roomId }) => {
   const userFigures = {};

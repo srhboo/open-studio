@@ -51,7 +51,6 @@ export const subscribeToUserRecord = ({ email, handleUpdate }) => {
     .collection("users")
     .doc(email)
     .onSnapshot((doc) => {
-      console.log("user record snapshot");
       if (doc.exists) {
         const { username, webMonPointer, auid } = doc.data();
         handleUpdate({ user: { username, webMonPointer, auid, email } });
@@ -279,7 +278,6 @@ export const checkCurrentUser = () => {
 
 export const setUpAuthObserver = ({ onSignedIn, onSignedOut }) => {
   return firebase.auth().onAuthStateChanged(function (user) {
-    console.log("changed");
     if (user) {
       onSignedIn({ user });
     } else {
