@@ -8,7 +8,7 @@ import { BLOOM_SCENE } from "./Bloom";
 
 const createUserSphere =
   ({ scene, userFigures, toDispose }) =>
-  ({ position, id }) => {
+  ({ position, id, name }) => {
     const userSphereGeometry = new THREE.SphereGeometry(1.5, 4, 4);
     const color = new THREE.Color();
     color.setHSL(Math.random(), 0.7, Math.random() * 0.2 + 0.05);

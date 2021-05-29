@@ -15,6 +15,7 @@ import {
   subscribeToUserRecord,
   updateUserRecord,
 } from "../../utils/firebase/firebase-auth";
+import { setSocketName } from "../../utils/socketio";
 import "./App.css";
 
 const App = () => {
@@ -25,6 +26,7 @@ const App = () => {
         email: user.email,
         handleUpdate: ({ user: userRecord }) => {
           setCurrentUser(userRecord);
+          setSocketName(userRecord.username);
         },
       });
     };

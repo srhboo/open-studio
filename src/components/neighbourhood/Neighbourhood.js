@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useParams, useHistory } from "react-router-dom";
 import * as THREE from "three";
-import { OrbitControls } from "../../utils/three-jsm/controls/OrbitControls.js";
-import { ImprovedNoise } from "../../utils/three-jsm/math/ImprovedNoise.js";
+import { OrbitControls } from "../../utils/three-jsm/controls/OrbitControls";
+import { CSS2DRenderer } from "../../utils/three-jsm/renderers/CSS2DRenderer";
 import Stats from "../../utils/three-jsm/libs/stats.module.js";
 import { ResourceTracker } from "../../utils/three-utils/resource-tracker";
 import { generateHeight, generateTexture } from "./ground-utils";
@@ -17,10 +17,12 @@ import { setupLiveUsers } from "./live-users";
 export const Neighbourhood = ({ currentUser }) => {
   const containerEl = useRef(null);
   const { roomId } = useParams();
-
+  let random;
+  const [events, setEvents] = useState([]);
   useEffect(() => {
     const resTracker = new ResourceTracker();
     const track = resTracker.track.bind(resTracker);
+    random = new Date().toDateString();
 
     let stats;
 
@@ -29,6 +31,8 @@ export const Neighbourhood = ({ currentUser }) => {
     let groundMesh, texture;
 
     let cleanupUser, updateUser;
+
+    let labelRenderer;
 
     const worldWidth = 256,
       worldDepth = 256,
@@ -45,6 +49,7 @@ export const Neighbourhood = ({ currentUser }) => {
 
     function init() {
       renderer = initializeRenderer();
+      labelRenderer = initializeCSSRenderer();
 
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x333333);
@@ -57,8 +62,6 @@ export const Neighbourhood = ({ currentUser }) => {
       );
 
       controls = initializeControls();
-
-      //
 
       const data = generateHeight(worldWidth, worldDepth);
 
@@ -114,8 +117,7 @@ export const Neighbourhood = ({ currentUser }) => {
         scene,
         track,
         roomId: "public",
-        containerEl,
-        camera,
+        currentUser,
       });
       cleanupUser = cleanupUserFigures;
       updateUser = updateUserFigures;
@@ -146,6 +148,7 @@ export const Neighbourhood = ({ currentUser }) => {
       camera.updateProjectionMatrix();
 
       renderer.setSize(window.innerWidth, window.innerHeight);
+      labelRenderer.setSize(window.innerWidth, window.innerHeight);
     }
 
     function initializeRenderer() {
@@ -155,6 +158,18 @@ export const Neighbourhood = ({ currentUser }) => {
       newRenderer.setClearColor(0x004477);
       containerEl.current.appendChild(newRenderer.domElement);
       return newRenderer;
+    }
+
+    function initializeCSSRenderer() {
+      const labelRenderer = new CSS2DRenderer();
+      labelRenderer.setSize(window.innerWidth, window.innerHeight);
+      labelRenderer.domElement.style.position = "absolute";
+      labelRenderer.domElement.style.top = "0px";
+      labelRenderer.domElement.style.pointerEvents = "none";
+      document
+        .getElementById("container")
+        .appendChild(labelRenderer.domElement);
+      return labelRenderer;
     }
 
     function initializeControls() {
@@ -184,30 +199,21 @@ export const Neighbourhood = ({ currentUser }) => {
 
     function render() {
       renderer.render(scene, camera);
+      labelRenderer.render(scene, camera);
     }
     return () => {
       resTracker.dispose();
       cleanupUser();
     };
   }, [roomId]);
-
   return (
-    <div ref={containerEl}>
-      {/* {labels.map(({ attachRef }) => (
-        <div
-          className="name-label"
-          style={{
-            position: "absolute",
-            width: 100,
-            height: 100,
-            top: -1000,
-            left: -1000,
-          }}
-          ref={attachRef}
-        >
-          test
-        </div>
-      ))} */}
+    <div ref={containerEl} id="container">
+      <div>{currentUser && currentUser.username}</div>
+      <div>
+        {events.map((event) => (
+          <div>{event}</div>
+        ))}
+      </div>
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { calculateNewPosition } from "../../utils/vector";
+import { CSS2DObject } from "../../utils/three-jsm/renderers/CSS2DRenderer";
 
 export class UserFigure {
   constructor(id, mesh) {
@@ -27,7 +28,22 @@ export class UserFigure {
       this.mesh.textLabel.updatePosition();
     }
   }
+  updateLabel(label) {
+    this.mesh.children.forEach((child) => {
+      if (child instanceof CSS2DObject) {
+        child.element.innerText = label;
+      }
+    });
+  }
+  removeLabel() {
+    this.mesh.children.forEach((child) => {
+      if (child instanceof CSS2DObject) {
+        child.element.remove();
+      }
+    });
+  }
   clean(scene) {
+    this.removeLabel();
     scene.remove(this.mesh);
     this.mesh = null;
     this.destination = null;

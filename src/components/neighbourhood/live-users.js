@@ -2,17 +2,25 @@ import * as THREE from "three";
 import { socket } from "../../utils/socketio";
 import { UserFigure } from "../room/UserFigure";
 import { ParametricGeometries } from "../../utils/three-jsm/geometries/ParametricGeometries";
-import { TextLabel } from "./TextLabel";
-
+import { CSS2DObject } from "../../utils/three-jsm/renderers/CSS2DRenderer";
+import {
+  setSocketOnUserConnected,
+  setSocketOnUserDisconnected,
+  setSocketOnUserDestination,
+  setSocketEmitJoinedRoom,
+  setSocketOnUpdatedName,
+} from "../../utils/socketio";
 // TODO: this copy is redundant with code in /rooms
 // refactor after figuring out how they connect
 
 // https://codepen.io/smtrd/pen/MZVWpN
 
 const createUserObject =
-  ({ scene, userFigures, track, type = "sphere", containerEl, camera }) =>
+  ({ scene, userFigures, track, type = "sphere" }) =>
   ({ position, id, name }) => {
     let userGeometry;
+    const userGroup = new THREE.Group();
+    scene.add(userGroup);
     switch (type) {
       case "klein":
         userGeometry = track(
@@ -37,54 +45,45 @@ const createUserObject =
     userObject.position.x = position.x;
     userObject.position.y = position.y;
     userObject.position.z = position.z;
-
+    userGroup.add(userObject);
     // userSphere.callback = function () {
     //   setImageViewerIsOpen(true);
     // };
-    const figure = new UserFigure(id, userObject);
-    scene.add(userObject);
+    const figure = new UserFigure(id, userGroup);
 
-    // var label = createUserLabel({ camera, containerEl });
-    const label = new TextLabel(name, userObject, containerEl);
-    console.log(name);
-    // addLabel(label);
-    // text.setHTML("Label ");
-    // text.setParent(userObject);
-    // containerEl.current.appendChild(text.element);
+    const text = document.createElement("div");
+    text.className = "text-label";
+    text.style.color = "white";
+    text.style.backgroundColor = "black";
+    text.textContent = name;
 
-    // userObject.textLabel = text;
-
+    const label = track(new CSS2DObject(text));
+    label.position.copy(userObject.position);
+    label.position.y += 200;
+    userGroup.add(label);
     // class has own clean method
     userFigures[id] = figure;
 
     return userObject;
   };
 
-export const setupLiveUsers = ({
-  scene,
-  track,
-  roomId,
-  containerEl,
-  camera,
-}) => {
+export const setupLiveUsers = ({ scene, track, roomId, currentUser }) => {
   const userFigures = {};
 
   const createUserObjectWithScene = createUserObject({
     scene,
     userFigures,
     track,
-    containerEl,
-    camera,
+    currentUser,
   });
 
-  socket.on("user connected", function ({ connectedUser }) {
-    console.log(connectedUser);
+  setSocketOnUserConnected(function ({ connectedUser }) {
     if (!userFigures[connectedUser.id]) {
       createUserObjectWithScene(connectedUser);
     }
   });
 
-  socket.on("user disconnected", function ({ disconnectedUser }) {
+  setSocketOnUserDisconnected(({ disconnectedUser }) => {
     const figure = userFigures[disconnectedUser.id];
     if (figure) {
       figure.clean(scene);
@@ -92,13 +91,19 @@ export const setupLiveUsers = ({
     }
   });
 
-  socket.on("user destination", ({ id, position }) => {
+  setSocketOnUserDestination(({ id, position }) => {
     const figure = userFigures[id];
     figure.setDestination(position);
   });
 
-  socket.emit("joined room", { roomId }, ({ usersOnline }) => {
-    console.log(usersOnline);
+  setSocketOnUpdatedName(({ updatedUser }) => {
+    const figure = userFigures[updatedUser.id];
+    if (figure) {
+      userFigures[updatedUser.id].updateLabel(updatedUser.name);
+    }
+  });
+
+  setSocketEmitJoinedRoom({ roomId }, ({ usersOnline }) => {
     for (let i = 0; i < usersOnline.length; i++) {
       const user = usersOnline[i];
       createUserObjectWithScene(user);
