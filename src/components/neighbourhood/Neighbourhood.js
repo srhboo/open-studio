@@ -1,6 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Helmet } from "react-helmet-async";
-import { useParams, useHistory } from "react-router-dom";
+import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "../../utils/three-jsm/controls/OrbitControls";
 import { CSS2DRenderer } from "../../utils/three-jsm/renderers/CSS2DRenderer";
@@ -22,8 +20,8 @@ const colours = [0xb35d58, 0xc2022c, 0x58a672, 0xbf9b45, 0x223870];
 export const Neighbourhood = ({ currentUser }) => {
   const containerEl = useRef(null);
   const roomId = "public";
-  let random;
-  const [events, setEvents] = useState([]);
+  // let random;
+  // const [events, setEvents] = useState([]);
   useEffect(() => {
     const resTracker = new ResourceTracker();
     const track = resTracker.track.bind(resTracker);
@@ -110,9 +108,9 @@ export const Neighbourhood = ({ currentUser }) => {
           transparent: true,
         })
       );
-      const textureMaterial = track(
-        new THREE.MeshBasicMaterial({ map: texture })
-      );
+      // const textureMaterial = track(
+      //   new THREE.MeshBasicMaterial({ map: texture })
+      // );
 
       groundMesh = track(new THREE.Mesh(geometry, wallMaterial));
       scene.add(groundMesh);
@@ -276,10 +274,9 @@ export const Neighbourhood = ({ currentUser }) => {
       containerCurr.removeChild(renderer.domElement);
       containerCurr.removeChild(stats.dom);
     };
-  }, []);
+  }, [currentUser]);
   return (
     <div ref={containerEl} id="container">
-      <div>{currentUser ? currentUser.username : ""}</div>
       <Events roomId={roomId} />
     </div>
   );

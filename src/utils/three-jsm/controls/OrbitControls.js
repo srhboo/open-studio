@@ -1,4 +1,5 @@
 import * as THREE from "three";
+/* eslint-disable */
 const {
   EventDispatcher,
   MOUSE,
