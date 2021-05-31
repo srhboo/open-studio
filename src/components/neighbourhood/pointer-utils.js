@@ -13,14 +13,14 @@ export const createHelper = ({ track }) => {
 };
 
 export const createPointerMoveHandler =
-  ({ pointer, renderer, camera, helper, raycaster, groundMesh }) =>
+  ({ pointer, renderer, camera, helper, raycaster, pointerClickMeshes }) =>
   (event) => {
     pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
     pointer.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
 
     // See if the ray from the camera into the world hits one of our meshes
-    const intersects = raycaster.intersectObject(groundMesh);
+    const intersects = raycaster.intersectObjects(pointerClickMeshes);
 
     // Toggle rotation bool for meshes that we clicked
     if (intersects.length > 0) {
@@ -32,10 +32,10 @@ export const createPointerMoveHandler =
   };
 
 export const createPointerClickHandler =
-  ({ raycaster, scene }) =>
+  ({ raycaster, scene, pointerClickMeshes }) =>
   (event) => {
-    event.preventDefault();
     if (event.target.tagName.toUpperCase() === "CANVAS") {
+      event.preventDefault();
       //   const intersectsHighlight = raycaster.intersectObjects(
       //     raycastHighlightObjects
       //   );
@@ -44,7 +44,7 @@ export const createPointerClickHandler =
       //     raycastHelperObjects
       //   );
 
-      const intersects = raycaster.intersectObjects(scene.children);
+      const intersects = raycaster.intersectObjects(pointerClickMeshes);
 
       //   if (intersectsHighlight.length > 0) {
       //     if (intersectsHighlight[0].object.callback) {
@@ -58,17 +58,16 @@ export const createPointerClickHandler =
       if (intersects.length > 0) {
         if (intersects[0].object.callback) {
           intersects[0].object.callback();
-        } else {
-          const intersectPoint = intersects[0].point;
-          socket.emit("new destination", {
-            position: {
-              x: intersectPoint.x,
-              y: intersectPoint.y + 50,
-              z: intersectPoint.z,
-            },
-            roomId: "public",
-          });
         }
+        const intersectPoint = intersects[0].point;
+        socket.emit("new destination", {
+          position: {
+            x: intersectPoint.x,
+            y: intersectPoint.y + 50,
+            z: intersectPoint.z,
+          },
+          roomId: "public",
+        });
       }
     }
   };

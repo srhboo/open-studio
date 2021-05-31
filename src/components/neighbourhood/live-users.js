@@ -7,7 +7,7 @@ import {
   setSocketOnUserConnected,
   setSocketOnUserDisconnected,
   setSocketOnUserDestination,
-  setSocketEmitJoinedRoom,
+  socketEmitJoinedRoom,
   setSocketOnUpdatedName,
 } from "../../utils/socketio";
 // TODO: this copy is redundant with code in /rooms
@@ -103,7 +103,7 @@ export const setupLiveUsers = ({ scene, track, roomId, currentUser }) => {
     }
   });
 
-  setSocketEmitJoinedRoom({ roomId }, ({ usersOnline }) => {
+  socketEmitJoinedRoom({ roomId }, ({ usersOnline }) => {
     for (let i = 0; i < usersOnline.length; i++) {
       const user = usersOnline[i];
       createUserObjectWithScene(user);

@@ -23,6 +23,14 @@ export const setSocketOnUpdatedName = (handler) => {
   socket.on("updated name", handler);
 };
 
-export const setSocketEmitJoinedRoom = (arg, handler) => {
+export const socketEmitJoinedRoom = (arg, handler) => {
   socket.emit("joined room", arg, handler);
+};
+
+export const socketSubmitChat = ({ message, roomId }) => {
+  socket.emit("submit chat", { message, roomId });
+};
+
+export const setSocketOnChat = (handler) => {
+  socket.on("chat message", handler);
 };

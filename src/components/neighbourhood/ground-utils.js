@@ -10,17 +10,17 @@ export const generateHeight = (width, height) => {
 
   let quality = 10;
 
-  // for (let j = 0; j < 4; j++) {
-  for (let i = 0; i < size; i++) {
-    const x = i % width,
-      y = ~~(i / width);
-    data[i] += Math.abs(
-      perlin.noise(x / quality, y / quality, z) * quality * 1.75
-    );
-  }
+  for (let j = 0; j < 4; j++) {
+    for (let i = 0; i < size; i++) {
+      const x = i % width,
+        y = ~~(i / width);
+      data[i] += Math.abs(
+        perlin.noise(x / quality, y / quality, z) * quality * 1.5
+      );
+    }
 
-  quality *= 5;
-  // }
+    quality *= 2;
+  }
 
   return data;
 };

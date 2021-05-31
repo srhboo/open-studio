@@ -1,0 +1,37 @@
+.events-log-container {
+  position: absolute;
+  right: 2rem;
+  top: 5rem;
+  height: 50vh;
+  width: 20rem;
+  display: flex;
+  flex-direction: column;
+  background: rgba(230, 171, 7, 0.3);
+}
+.events-list {
+  flex-grow: 1;
+  color: white;
+  font-size: 1rem;
+  overflow-y: scroll;
+}
+.events-list::-webkit-scrollbar {
+  width: 1em;
+}
+.events-list::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+.events-list::-webkit-scrollbar-thumb {
+  border: 1px solid white;
+}
+.chat-input {
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 1rem;
+}
+.send-chat-button {
+  background-color: transparent;
+  color: white;
+  border: 1px solid white;
+}

@@ -142,8 +142,11 @@ const App = () => {
             <Route path="/neighbourhood">
               <Neighbourhood currentUser={currentUser} />
             </Route>
-            <Route path="/">
+            <Route path="/home">
               <CreatorControls currentUser={currentUser} />
+            </Route>
+            <Route path="/">
+              <Neighbourhood currentUser={currentUser} />
             </Route>
           </Switch>
         </div>
