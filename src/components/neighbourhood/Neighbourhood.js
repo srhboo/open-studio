@@ -75,7 +75,7 @@ export const Neighbourhood = ({ currentUser }) => {
       controls.target.y =
         data[worldHalfWidth + worldHalfDepth * worldWidth] + 500;
 
-      camera.position.y = controls.target.y + 2000;
+      camera.position.y = controls.target.y + 500;
       camera.position.x = 2000;
       controls.update();
 
@@ -164,7 +164,7 @@ export const Neighbourhood = ({ currentUser }) => {
         scene.add(wall2);
         pointerClickMeshes.push(wall2);
         toRotate.push(wall2);
-        wall2.position.y = 1000 + 300 * i;
+        wall2.position.y = 300 + 300 * i;
       }
 
       const { updateUserFigures, cleanupUserFigures } = setupLiveUsers({

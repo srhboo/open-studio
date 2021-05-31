@@ -42,9 +42,9 @@ const createUserObject =
     );
 
     const userObject = track(new THREE.Mesh(userGeometry, userMaterial));
-    userObject.position.x = position.x;
-    userObject.position.y = position.y;
-    userObject.position.z = position.z;
+    userGroup.position.x = position.x;
+    userGroup.position.y = position.y;
+    userGroup.position.z = position.z;
     userGroup.add(userObject);
     // userSphere.callback = function () {
     //   setImageViewerIsOpen(true);
