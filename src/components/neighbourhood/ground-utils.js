@@ -2,6 +2,9 @@ import * as THREE from "three";
 
 import { ImprovedNoise } from "../../utils/three-jsm/math/ImprovedNoise.js";
 
+// 4x4 so size is 16
+const sampleData = [2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+
 export const generateHeight = (width, height) => {
   const size = width * height,
     data = new Uint8Array(size),
@@ -22,7 +25,7 @@ export const generateHeight = (width, height) => {
     quality *= 2;
   }
 
-  return data;
+  return sampleData;
 };
 
 export const generateTexture = (data, width, height) => {
@@ -85,4 +88,14 @@ export const generateTexture = (data, width, height) => {
   context.putImageData(image, 0, 0);
 
   return canvasScaled;
+};
+
+// assume square
+export const intersectPointToDataIndex = ({ worldSize, planeSize, point }) => {
+  const { x, z } = point;
+  let calcX = Math.round(((x + 0.5 * planeSize) / planeSize) * (worldSize - 1));
+  let calcZ = Math.round(((z + 0.5 * planeSize) / planeSize) * (worldSize - 1));
+  const base = calcZ * worldSize;
+  const index = base + calcX;
+  return index;
 };

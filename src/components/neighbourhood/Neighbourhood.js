@@ -38,8 +38,8 @@ export const Neighbourhood = ({ currentUser }) => {
 
     let toRotate = [];
 
-    const worldWidth = 100,
-      worldDepth = 100,
+    const worldWidth = 4,
+      worldDepth = 4,
       worldHalfWidth = worldWidth / 2,
       worldHalfDepth = worldDepth / 2;
 
@@ -86,7 +86,7 @@ export const Neighbourhood = ({ currentUser }) => {
 
       for (let i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
         // only update y coordinate
-        vertices[j + 1] = data[i] * 10;
+        vertices[j + 1] = data[i] * 1000;
       }
 
       geometry.computeFaceNormals(); // needed for helper
@@ -188,6 +188,7 @@ export const Neighbourhood = ({ currentUser }) => {
         raycaster,
         scene,
         pointerClickMeshes,
+        groundMesh,
       });
       containerEl.current.addEventListener("click", onPointerClick);
 

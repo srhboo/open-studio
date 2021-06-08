@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { socket } from "../../utils/socketio";
+import { intersectPointToDataIndex } from "./ground-utils";
 
 export const createHelper = ({ track }) => {
   const geometryHelper = track(new THREE.ConeGeometry(20, 100, 3));
@@ -32,7 +33,7 @@ export const createPointerMoveHandler =
   };
 
 export const createPointerClickHandler =
-  ({ raycaster, scene, pointerClickMeshes }) =>
+  ({ raycaster, scene, pointerClickMeshes, groundMesh }) =>
   (event) => {
     if (event.target.tagName.toUpperCase() === "CANVAS") {
       event.preventDefault();
@@ -60,6 +61,14 @@ export const createPointerClickHandler =
           intersects[0].object.callback();
         }
         const intersectPoint = intersects[0].point;
+        affectPlaneAtPoint({
+          point: {
+            x: intersectPoint.x,
+            y: intersectPoint.y,
+            z: intersectPoint.z,
+          },
+          mesh: groundMesh,
+        });
         socket.emit("new destination", {
           position: {
             x: intersectPoint.x,
@@ -71,3 +80,14 @@ export const createPointerClickHandler =
       }
     }
   };
+
+const affectPlaneAtPoint = ({ point, mesh }) => {
+  const index = intersectPointToDataIndex({
+    worldSize: 4,
+    planeSize: 7500,
+    point,
+  });
+  const vertices = mesh.geometry.attributes.position.array;
+  vertices[index * 3 + 1] += 1000;
+  mesh.geometry.attributes.position.needsUpdate = true;
+};
