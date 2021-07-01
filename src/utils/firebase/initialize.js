@@ -14,5 +14,6 @@ export const initializeFirebase = () => {
   firebase.initializeApp(firebaseConfig);
   firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
   const db = firebase.firestore();
-  return db;
+  const storage = firebase.storage();
+  return { db, storage };
 };

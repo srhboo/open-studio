@@ -2,3 +2,13 @@
   background-color: "black";
   color: white;
 }
+.modal-container {
+  position: absolute;
+}
+.add-object {
+  position: absolute;
+  top: 20rem;
+  left: 5rem;
+  background-color: black;
+  color: white;
+}

@@ -1,21 +1,40 @@
 import * as THREE from "three";
 import { socket } from "../../utils/socketio";
-import { intersectPointToDataIndex } from "./ground-utils";
+import { pasteGroundDecal } from "./decals";
 
-export const createHelper = ({ track }) => {
+export const createHelper = ({
+  track,
+  pointer,
+  raycaster,
+  renderer,
+  camera,
+  pointerClickMeshes,
+  scene,
+}) => {
   const geometryHelper = track(new THREE.ConeGeometry(20, 100, 3));
   geometryHelper.translate(0, 50, 0);
   geometryHelper.rotateX(Math.PI / 2);
 
   const helperMaterial = track(new THREE.MeshNormalMaterial());
-  const helper = track(new THREE.Mesh(geometryHelper, helperMaterial));
+  const defaultHelper = track(new THREE.Mesh(geometryHelper, helperMaterial));
 
-  return helper;
-};
+  let currentHelper = defaultHelper;
+  let currentHelperType = "default";
 
-export const createPointerMoveHandler =
-  ({ pointer, renderer, camera, helper, raycaster, pointerClickMeshes }) =>
-  (event) => {
+  const switchHelper = (mesh) => {
+    console.log("switching");
+    if (currentHelperType === "default") {
+      currentHelper = mesh;
+      defaultHelper.position.x = -100;
+      currentHelperType = "object";
+    } else {
+      scene.remove(currentHelper);
+      currentHelper = defaultHelper;
+      currentHelperType = "default";
+    }
+  };
+
+  const onPointerMove = (event) => {
     pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
     pointer.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
@@ -25,16 +44,14 @@ export const createPointerMoveHandler =
 
     // Toggle rotation bool for meshes that we clicked
     if (intersects.length > 0) {
-      helper.position.set(0, 0, 0);
-      helper.lookAt(intersects[0].face.normal);
+      currentHelper.position.set(0, 0, 0);
+      currentHelper.lookAt(intersects[0].face.normal);
 
-      helper.position.copy(intersects[0].point);
+      currentHelper.position.copy(intersects[0].point);
     }
   };
 
-export const createPointerClickHandler =
-  ({ raycaster, scene, pointerClickMeshes, groundMesh }) =>
-  (event) => {
+  const onPointerClick = (event) => {
     if (event.target.tagName.toUpperCase() === "CANVAS") {
       event.preventDefault();
       //   const intersectsHighlight = raycaster.intersectObjects(
@@ -44,50 +61,58 @@ export const createPointerClickHandler =
       //   const intersectsPosition = raycaster.intersectObjects(
       //     raycastHelperObjects
       //   );
+      if (currentHelperType === "default") {
+        const intersects = raycaster.intersectObjects(pointerClickMeshes);
 
-      const intersects = raycaster.intersectObjects(pointerClickMeshes);
+        //   if (intersectsHighlight.length > 0) {
+        //     if (intersectsHighlight[0].object.callback) {
+        //       intersectsHighlight[0].object.callback();
+        //     }
+        //   } else if (intersectsPosition.length > 0) {
+        //     // update position if floor
+        //     const intersectionPoint = intersectsPosition[0].point;
+        //     socket.emit("new destination", { position: intersectionPoint, roomId });
+        //   }
+        if (intersects.length > 0) {
+          if (intersects[0].object.callback) {
+            console.log("callback found");
+            intersects[0].object.callback();
+          }
+          const intersectPoint = intersects[0].point;
+          // affectPlaneAtPoint({
+          //   point: {
+          //     x: intersectPoint.x,
+          //     y: intersectPoint.y,
+          //     z: intersectPoint.z,
+          //   },
+          //   mesh: groundMesh,
+          //   textureData,
+          // });
+          pasteGroundDecal({
+            track,
+            scene,
+            intersects: intersects[0],
+            helper: currentHelper,
+          });
 
-      //   if (intersectsHighlight.length > 0) {
-      //     if (intersectsHighlight[0].object.callback) {
-      //       intersectsHighlight[0].object.callback();
-      //     }
-      //   } else if (intersectsPosition.length > 0) {
-      //     // update position if floor
-      //     const intersectionPoint = intersectsPosition[0].point;
-      //     socket.emit("new destination", { position: intersectionPoint, roomId });
-      //   }
-      if (intersects.length > 0) {
-        if (intersects[0].object.callback) {
-          intersects[0].object.callback();
+          socket.emit("new destination", {
+            position: {
+              x: intersectPoint.x,
+              y: intersectPoint.y + 50,
+              z: intersectPoint.z,
+            },
+            roomId: "public",
+          });
         }
-        const intersectPoint = intersects[0].point;
-        affectPlaneAtPoint({
-          point: {
-            x: intersectPoint.x,
-            y: intersectPoint.y,
-            z: intersectPoint.z,
-          },
-          mesh: groundMesh,
-        });
-        socket.emit("new destination", {
-          position: {
-            x: intersectPoint.x,
-            y: intersectPoint.y + 50,
-            z: intersectPoint.z,
-          },
-          roomId: "public",
-        });
+      } else {
+        const intersectsAll = raycaster.intersectObjects(scene.children);
+        if (intersectsAll[0].object.callback) {
+          console.log("callback found");
+          intersectsAll[0].object.callback();
+        }
       }
     }
   };
 
-const affectPlaneAtPoint = ({ point, mesh }) => {
-  const index = intersectPointToDataIndex({
-    worldSize: 4,
-    planeSize: 7500,
-    point,
-  });
-  const vertices = mesh.geometry.attributes.position.array;
-  vertices[index * 3 + 1] += 1000;
-  mesh.geometry.attributes.position.needsUpdate = true;
+  return { currentHelper, switchHelper, onPointerMove, onPointerClick };
 };

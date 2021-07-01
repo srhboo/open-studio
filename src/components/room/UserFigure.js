@@ -35,6 +35,14 @@ export class UserFigure {
       }
     });
   }
+  updateMesh(mesh) {
+    this.mesh.children.forEach((child) => {
+      if (child instanceof THREE.Object3D) {
+        this.mesh.remove(child);
+        this.mesh.add(mesh);
+      }
+    });
+  }
   removeLabel() {
     this.mesh.children.forEach((child) => {
       if (child instanceof CSS2DObject) {

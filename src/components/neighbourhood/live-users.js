@@ -10,6 +10,8 @@ import {
   socketEmitJoinedRoom,
   setSocketOnUpdatedName,
 } from "../../utils/socketio";
+import { OBJLoader } from "../../utils/three-jsm/loaders/OBJLoader";
+import chainWindow from "../../assets/models/chain-window2.obj";
 // TODO: this copy is redundant with code in /rooms
 // refactor after figuring out how they connect
 
@@ -19,6 +21,7 @@ const createUserObject =
   ({ scene, userFigures, track, type = "sphere" }) =>
   ({ position, id, name }) => {
     let userGeometry;
+
     const userGroup = new THREE.Group();
     scene.add(userGroup);
     switch (type) {
@@ -38,7 +41,11 @@ const createUserObject =
     color.setHSL(Math.random(), 0.7, Math.random() * 0.2 + 0.05);
 
     const userMaterial = track(
-      new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+      new THREE.MeshPhongMaterial({
+        color: 0x80ee10,
+        shininess: 100,
+        side: THREE.DoubleSide,
+      })
     );
 
     const userObject = track(new THREE.Mesh(userGeometry, userMaterial));
@@ -46,10 +53,36 @@ const createUserObject =
     userGroup.position.y = position.y;
     userGroup.position.z = position.z;
     userGroup.add(userObject);
+
+    const loader = new OBJLoader();
+
+    // instantiate a loader
+
     // userSphere.callback = function () {
     //   setImageViewerIsOpen(true);
     // };
     const figure = new UserFigure(id, userGroup);
+
+    // load a resource
+    loader.load(
+      // resource URL
+      chainWindow,
+      // called when resource is loaded
+      function (object) {
+        const chainMeshGeometry = track(object.children[0].geometry);
+        const chainObj = track(new THREE.Mesh(chainMeshGeometry, userMaterial));
+        chainObj.scale.set(100, 100, 100);
+        figure.updateMesh(chainObj);
+      },
+      // called when loading is in progresses
+      function (xhr) {
+        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      },
+      // called when loading has errors
+      function (error) {
+        console.log("An error happened");
+      }
+    );
 
     const text = document.createElement("div");
     text.className = "text-label";

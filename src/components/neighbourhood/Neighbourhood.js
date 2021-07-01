@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import "./neighbourhood.css";
 import { OrbitControls } from "../../utils/three-jsm/controls/OrbitControls";
 import { CSS2DRenderer } from "../../utils/three-jsm/renderers/CSS2DRenderer";
 import Stats from "../../utils/three-jsm/libs/stats.module.js";
 import { ResourceTracker } from "../../utils/three-utils/resource-tracker";
-import { generateHeight, generateTexture } from "./ground-utils";
-import { getRandomInt } from "../../utils/random";
+import { createGround } from "./ground-utils";
 import {
   createHelper,
   createPointerMoveHandler,
@@ -14,14 +14,23 @@ import {
 import { setupLiveUsers } from "./live-users";
 import { socket } from "../../utils/socketio";
 import { Events } from "../events/Events";
-
-const colours = [0xb35d58, 0xc2022c, 0x58a672, 0xbf9b45, 0x223870];
+import { sampleData } from "./ground-data";
+import { createRotatingPlatforms, createLights } from "./environment";
+import { setupNeighbourhoodData } from "./neighbourhood-data";
+import { createObject } from "./objects";
+import { ObjectCreationForm } from "../object-creation-form/ObjectCreationForm";
+import { ObjectDisplay } from "../object-display/ObjectDisplay";
 
 export const Neighbourhood = ({ currentUser }) => {
   const containerEl = useRef(null);
   const roomId = "public";
   // let random;
-  // const [events, setEvents] = useState([]);
+  const [objectFormIsOpen, setObjectFormIsOpen] = useState(false);
+  const [handlePlaceNote, setHandlePlaceNote] = useState(null);
+  // const [roomObjects, setRoomObjects] = useState({});
+  const roomObjects = useRef({});
+  const [objectOnDisplayId, setObjectOnDisplayId] = useState("");
+
   useEffect(() => {
     const resTracker = new ResourceTracker();
     const track = resTracker.track.bind(resTracker);
@@ -30,16 +39,18 @@ export const Neighbourhood = ({ currentUser }) => {
 
     let camera, controls, scene, renderer;
 
-    let groundMesh, texture;
+    let groundMesh, texture, textureData;
 
-    let cleanupUser, updateUser;
+    let cleanupUser, updateUser, updateRotatingPlanes;
+
+    let unsubscribeRoomObjects;
 
     let labelRenderer;
 
-    let toRotate = [];
+    let switchHelper;
 
-    const worldWidth = 4,
-      worldDepth = 4,
+    const worldWidth = 100,
+      worldDepth = 100,
       worldHalfWidth = worldWidth / 2,
       worldHalfDepth = worldDepth / 2;
 
@@ -68,7 +79,17 @@ export const Neighbourhood = ({ currentUser }) => {
 
       controls = initializeControls();
 
-      const data = generateHeight(worldWidth, worldDepth);
+      const { unsubscribeObjects } = setupNeighbourhoodData({
+        scene,
+        track,
+        pointerClickMeshes,
+        setObjectOnDisplayId,
+        roomObjects: roomObjects.current,
+      });
+      unsubscribeRoomObjects = unsubscribeObjects;
+
+      // const data = generateHeight(worldWidth, worldDepth);
+      const data = sampleData;
 
       controls.target.y =
         data[worldHalfWidth + worldHalfDepth * worldWidth] + 500;
@@ -77,93 +98,46 @@ export const Neighbourhood = ({ currentUser }) => {
       camera.position.x = 2000;
       controls.update();
 
-      const geometry = track(
-        new THREE.PlaneGeometry(7500, 7500, worldWidth - 1, worldDepth - 1)
-      );
-      geometry.rotateX(-Math.PI / 2);
-
-      const vertices = geometry.attributes.position.array;
-
-      for (let i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
-        // only update y coordinate
-        vertices[j + 1] = data[i] * 1000;
-      }
-
-      geometry.computeFaceNormals(); // needed for helper
-
-      //
-
-      texture = track(
-        new THREE.CanvasTexture(generateTexture(data, worldWidth, worldDepth))
-      );
-      texture.wrapS = THREE.ClampToEdgeWrapping;
-      texture.wrapT = THREE.ClampToEdgeWrapping;
-
-      const wallMaterial = track(
-        new THREE.MeshBasicMaterial({
-          color: 0xffffff,
-          opacity: 0.2,
-          side: THREE.DoubleSide,
-          wireframe: true,
-          transparent: true,
-        })
-      );
-      // const textureMaterial = track(
-      //   new THREE.MeshBasicMaterial({ map: texture })
-      // );
-
-      groundMesh = track(new THREE.Mesh(geometry, wallMaterial));
-      scene.add(groundMesh);
+      const { updatedGroundMesh } = createGround({
+        track,
+        worldWidth,
+        worldDepth,
+        data,
+        scene,
+      });
+      groundMesh = updatedGroundMesh;
       pointerClickMeshes.push(groundMesh);
 
-      helper = createHelper({ track });
+      const { rotatePlanes } = createRotatingPlatforms({
+        track,
+        scene,
+        pointerClickMeshes,
+      });
+      updateRotatingPlanes = rotatePlanes;
+
+      createLights({ track, scene });
+
+      const {
+        currentHelper,
+        switchHelper: switchHelperFn,
+        onPointerMove,
+        onPointerClick,
+      } = createHelper({
+        track,
+        pointer,
+        raycaster,
+        renderer,
+        camera,
+        pointerClickMeshes,
+        scene,
+      });
+      helper = currentHelper;
+      switchHelper = switchHelperFn;
       scene.add(helper);
 
-      //floating walls
-      const wall1Geometry = track(new THREE.CylinderGeometry(10, 10, 3000, 32));
-      wall1Geometry.rotateY(-Math.PI / 5);
-      let wall1Material = track(
-        new THREE.MeshBasicMaterial({
-          color: 0x223870,
-          opacity: 0.5,
-          side: THREE.DoubleSide,
-          wireframe: true,
-          transparent: true,
-        })
-      );
-      let wall1 = track(new THREE.Mesh(wall1Geometry, wall1Material));
-      wall1.callback = () => {
-        const color = getRandomColor();
-        wall1.material.color.setHex(color);
-      };
-      scene.add(wall1);
-      pointerClickMeshes.push(wall1);
-      wall1.position.y = 1000;
+      containerEl.current.addEventListener("pointermove", onPointerMove);
 
-      for (let i = 0; i < 5; i++) {
-        const wall2Geometry = track(new THREE.PlaneGeometry(500, 1000, 20, 80));
-        wall2Geometry.rotateX(-Math.PI / 2);
-        wall2Geometry.rotateY((-Math.PI / 3) * i);
-        const randColour = getRandomColor();
-        let wall2Material = track(
-          new THREE.MeshBasicMaterial({
-            color: randColour,
-            opacity: 0.3,
-            side: THREE.DoubleSide,
-            wireframe: true,
-            transparent: true,
-          })
-        );
-        let wall2 = track(new THREE.Mesh(wall2Geometry, wall2Material));
-        wall2.callback = () => {
-          const color = getRandomColor();
-          wall2.material.color.setHex(color);
-        };
-        scene.add(wall2);
-        pointerClickMeshes.push(wall2);
-        toRotate.push(wall2);
-        wall2.position.y = 300 + 300 * i;
-      }
+      containerEl.current.addEventListener("click", onPointerClick);
 
       const { updateUserFigures, cleanupUserFigures } = setupLiveUsers({
         scene,
@@ -173,24 +147,6 @@ export const Neighbourhood = ({ currentUser }) => {
       });
       cleanupUser = cleanupUserFigures;
       updateUser = updateUserFigures;
-
-      const onPointerMove = createPointerMoveHandler({
-        pointer,
-        renderer,
-        camera,
-        helper,
-        raycaster,
-        pointerClickMeshes,
-      });
-      containerEl.current.addEventListener("pointermove", onPointerMove);
-
-      const onPointerClick = createPointerClickHandler({
-        raycaster,
-        scene,
-        pointerClickMeshes,
-        groundMesh,
-      });
-      containerEl.current.addEventListener("click", onPointerClick);
 
       stats = new Stats();
       containerEl.current.appendChild(stats.dom);
@@ -238,20 +194,9 @@ export const Neighbourhood = ({ currentUser }) => {
       return newControls;
     }
 
-    function getRandomColor() {
-      const index = getRandomInt(0, colours.length);
-      return colours[index];
-    }
-
-    function rotatePlanes() {
-      toRotate.forEach((plane) => {
-        plane.rotateY(0.005);
-      });
-    }
-
     function update() {
       updateUser();
-      rotatePlanes();
+      updateRotatingPlanes();
       controls.update();
       stats && stats.update();
     }
@@ -267,18 +212,50 @@ export const Neighbourhood = ({ currentUser }) => {
       labelRenderer.render(scene, camera);
     }
 
+    const handleAddNote = () => {
+      const newObject = createObject({
+        position: { x: 20, y: 0, z: 0 },
+        id: "23",
+        scene,
+        track,
+        addTo: pointerClickMeshes,
+      });
+      return { newObject, switchHelper };
+    };
+    setHandlePlaceNote(() => handleAddNote);
+
     const containerCurr = containerEl.current;
+    console.log("useeffect");
     return () => {
       resTracker.dispose();
       cleanupUser();
       socket.removeAllListeners();
       containerCurr.removeChild(renderer.domElement);
       containerCurr.removeChild(stats.dom);
+      unsubscribeRoomObjects();
     };
   }, [currentUser]);
   return (
-    <div ref={containerEl} id="container">
+    <React.Fragment>
+      {objectOnDisplayId && roomObjects.current[objectOnDisplayId] && (
+        <ObjectDisplay
+          roomObjects={roomObjects.current}
+          objectOnDisplay={roomObjects.current[objectOnDisplayId]}
+          closeDisplay={() => setObjectOnDisplayId("")}
+        />
+      )}
+      <button className="add-object" onClick={() => setObjectFormIsOpen(true)}>
+        drop something
+      </button>
+      {objectFormIsOpen && (
+        <ObjectCreationForm
+          handleInitiatePlaceNote={handlePlaceNote}
+          closeForm={() => setObjectFormIsOpen(false)}
+          currentUser={currentUser}
+        />
+      )}
       <Events roomId={roomId} />
-    </div>
+      <div ref={containerEl} id="container"></div>
+    </React.Fragment>
   );
 };
