@@ -12,3 +12,14 @@
   background-color: black;
   color: white;
 }
+.decal-switch-container {
+  position: absolute;
+  top: 5rem;
+  left: 5rem;
+  background-color: black;
+  color: white;
+}
+.decal-switch-button.selected {
+  background-color: yellow;
+  color: black;
+}

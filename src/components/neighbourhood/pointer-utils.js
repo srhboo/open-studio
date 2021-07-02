@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { socket } from "../../utils/socketio";
 import { pasteGroundDecal } from "./decals";
+import { DECAL_TYPES, DEFAULT_DECAL_TYPE } from "../decals/decal-types";
 
 export const createHelper = ({
   track,
@@ -32,6 +33,11 @@ export const createHelper = ({
       currentHelper = defaultHelper;
       currentHelperType = "default";
     }
+  };
+
+  let currentDecalType = DEFAULT_DECAL_TYPE;
+  const switchDecal = (type) => {
+    currentDecalType = type;
   };
 
   const onPointerMove = (event) => {
@@ -75,7 +81,6 @@ export const createHelper = ({
         //   }
         if (intersects.length > 0) {
           if (intersects[0].object.callback) {
-            console.log("callback found");
             intersects[0].object.callback();
           }
           const intersectPoint = intersects[0].point;
@@ -88,12 +93,15 @@ export const createHelper = ({
           //   mesh: groundMesh,
           //   textureData,
           // });
-          pasteGroundDecal({
-            track,
-            scene,
-            intersects: intersects[0],
-            helper: currentHelper,
-          });
+          if (currentDecalType && currentDecalType !== DECAL_TYPES.NONE) {
+            pasteGroundDecal({
+              track,
+              scene,
+              intersects: intersects[0],
+              helper: currentHelper,
+              decalType: currentDecalType,
+            });
+          }
 
           socket.emit("new destination", {
             position: {
@@ -114,5 +122,34 @@ export const createHelper = ({
     }
   };
 
-  return { currentHelper, switchHelper, onPointerMove, onPointerClick };
+  const onPointerDoubleClick = (event) => {
+    if (event.target.tagName.toUpperCase() === "CANVAS") {
+      event.preventDefault();
+
+      const intersects = raycaster.intersectObjects(pointerClickMeshes);
+
+      //   if (intersectsHighlight.length > 0) {
+      //     if (intersectsHighlight[0].object.callback) {
+      //       intersectsHighlight[0].object.callback();
+      //     }
+      //   } else if (intersectsPosition.length > 0) {
+      //     // update position if floor
+      //     const intersectionPoint = intersectsPosition[0].point;
+      //     socket.emit("new destination", { position: intersectionPoint, roomId });
+      //   }
+      if (intersects.length > 0) {
+        const intersectPoint = intersects[0];
+        console.log(intersectPoint);
+      }
+    }
+  };
+
+  return {
+    currentHelper,
+    switchHelper,
+    switchDecal,
+    onPointerMove,
+    onPointerClick,
+    onPointerDoubleClick,
+  };
 };

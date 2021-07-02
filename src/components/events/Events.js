@@ -19,11 +19,12 @@ export const Events = ({ roomId }) => {
 
   useEffect(() => {
     const handleReceiveChat = ({ message, name }) => {
+      console.log("got in events");
       setEvents([...events, { message, name }]);
       eventsScrollRef.current.scrollTop = eventsScrollRef.current.scrollHeight;
     };
     setSocketOnChat(handleReceiveChat);
-
+    // TODO: why does chat not work when logged in
     return () => {
       socket.removeAllListeners("chat message");
     };

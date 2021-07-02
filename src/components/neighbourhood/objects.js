@@ -39,7 +39,6 @@ export const createObject = ({
   scene.add(booObject);
 
   const loader = new OBJLoader();
-  console.log("create");
 
   // load a resource
   loader.load(
@@ -52,7 +51,6 @@ export const createObject = ({
       booObject.scale.set(100, 100, 100);
       booObject.rotation.y = getRandomInt(0, 360);
       booObject.rotation.x = getRandomInt(0, 360);
-      console.log("rotate");
     },
     // called when loading is in progresses
     function (xhr) {

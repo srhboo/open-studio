@@ -143,34 +143,34 @@ export const affectPlaneAtPoint = ({ point, mesh, textureData }) => {
   // mesh.material.map.needsUpdate = true;
 };
 
-const updateShading = ({ textureData, data, index, width }) => {
-  console.log(data.length);
-  let shade, context, image, imageData;
-  const vector3 = new THREE.Vector3(0, 0, 0);
+// const updateShading = ({ textureData, data, index, width }) => {
+//   console.log(data.length);
+//   let shade, context, image, imageData;
+//   const vector3 = new THREE.Vector3(0, 0, 0);
 
-  const sun = new THREE.Vector3(1, 1, 1);
-  sun.normalize();
-  // distance of 4 consecutive vertices away on grid
-  vector3.x = data[index * 64 - 2] - data[index * 64 + 2];
-  vector3.y = 2;
-  vector3.z = data[index * 64 - width * 2] - data[index * 64 + width * 2];
-  vector3.normalize();
+//   const sun = new THREE.Vector3(1, 1, 1);
+//   sun.normalize();
+//   // distance of 4 consecutive vertices away on grid
+//   vector3.x = data[index * 64 - 2] - data[index * 64 + 2];
+//   vector3.y = 2;
+//   vector3.z = data[index * 64 - width * 2] - data[index * 64 + width * 2];
+//   vector3.normalize();
 
-  shade = vector3.dot(sun);
+//   shade = vector3.dot(sun);
 
-  context = textureData.getContext("2d");
+//   context = textureData.getContext("2d");
 
-  image = context.getImageData(0, 0, textureData.width, textureData.height);
-  imageData = image.data;
+//   image = context.getImageData(0, 0, textureData.width, textureData.height);
+//   imageData = image.data;
 
-  imageData[index * 64] = (96 + shade * 128) * (0.5 + data[index * 64] * 0.007);
-  imageData[index * 64 + 1] =
-    (32 + shade * 96) * (0.5 + data[index * 64] * 0.007);
-  imageData[index * 64 + 2] = shade * 96 * (0.5 + data[index * 64] * 0.007);
+//   imageData[index * 64] = (96 + shade * 128) * (0.5 + data[index * 64] * 0.007);
+//   imageData[index * 64 + 1] =
+//     (32 + shade * 96) * (0.5 + data[index * 64] * 0.007);
+//   imageData[index * 64 + 2] = shade * 96 * (0.5 + data[index * 64] * 0.007);
 
-  context.drawImage(textureData, 0, 0);
-  context.putImageData(image, 0, 0);
-};
+//   context.drawImage(textureData, 0, 0);
+//   context.putImageData(image, 0, 0);
+// };
 
 export const createGround = ({
   track,

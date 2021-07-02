@@ -101,6 +101,7 @@ const createUserObject =
   };
 
 export const setupLiveUsers = ({ scene, track, roomId, currentUser }) => {
+  console.log("setting up live users");
   const userFigures = {};
 
   const createUserObjectWithScene = createUserObject({

@@ -6,11 +6,7 @@ import { CSS2DRenderer } from "../../utils/three-jsm/renderers/CSS2DRenderer";
 import Stats from "../../utils/three-jsm/libs/stats.module.js";
 import { ResourceTracker } from "../../utils/three-utils/resource-tracker";
 import { createGround } from "./ground-utils";
-import {
-  createHelper,
-  createPointerMoveHandler,
-  createPointerClickHandler,
-} from "./pointer-utils";
+import { createHelper } from "./pointer-utils";
 import { setupLiveUsers } from "./live-users";
 import { socket } from "../../utils/socketio";
 import { Events } from "../events/Events";
@@ -20,16 +16,18 @@ import { setupNeighbourhoodData } from "./neighbourhood-data";
 import { createObject } from "./objects";
 import { ObjectCreationForm } from "../object-creation-form/ObjectCreationForm";
 import { ObjectDisplay } from "../object-display/ObjectDisplay";
+import { DECAL_TYPES, DEFAULT_DECAL_TYPE } from "../decals/decal-types";
+import { loadDecals } from "./decals";
 
 export const Neighbourhood = ({ currentUser }) => {
   const containerEl = useRef(null);
   const roomId = "public";
-  // let random;
   const [objectFormIsOpen, setObjectFormIsOpen] = useState(false);
   const [handlePlaceNote, setHandlePlaceNote] = useState(null);
-  // const [roomObjects, setRoomObjects] = useState({});
   const roomObjects = useRef({});
   const [objectOnDisplayId, setObjectOnDisplayId] = useState("");
+  const [currentDecalType, setCurrentDecalType] = useState(DEFAULT_DECAL_TYPE);
+  const switchDecal = useRef(null);
 
   useEffect(() => {
     const resTracker = new ResourceTracker();
@@ -108,6 +106,8 @@ export const Neighbourhood = ({ currentUser }) => {
       groundMesh = updatedGroundMesh;
       pointerClickMeshes.push(groundMesh);
 
+      loadDecals({ roomId: "public", scene, track, groundMesh });
+
       const { rotatePlanes } = createRotatingPlatforms({
         track,
         scene,
@@ -117,12 +117,7 @@ export const Neighbourhood = ({ currentUser }) => {
 
       createLights({ track, scene });
 
-      const {
-        currentHelper,
-        switchHelper: switchHelperFn,
-        onPointerMove,
-        onPointerClick,
-      } = createHelper({
+      const helperUtils = createHelper({
         track,
         pointer,
         raycaster,
@@ -131,13 +126,22 @@ export const Neighbourhood = ({ currentUser }) => {
         pointerClickMeshes,
         scene,
       });
+      const {
+        currentHelper,
+        onPointerMove,
+        onPointerClick,
+        onPointerDoubleClick,
+      } = helperUtils;
       helper = currentHelper;
-      switchHelper = switchHelperFn;
+      switchHelper = helperUtils.switchHelper;
+      switchDecal.current = helperUtils.switchDecal;
       scene.add(helper);
 
       containerEl.current.addEventListener("pointermove", onPointerMove);
 
       containerEl.current.addEventListener("click", onPointerClick);
+
+      containerEl.current.addEventListener("dblclick", onPointerDoubleClick);
 
       const { updateUserFigures, cleanupUserFigures } = setupLiveUsers({
         scene,
@@ -225,7 +229,7 @@ export const Neighbourhood = ({ currentUser }) => {
     setHandlePlaceNote(() => handleAddNote);
 
     const containerCurr = containerEl.current;
-    console.log("useeffect");
+
     return () => {
       resTracker.dispose();
       cleanupUser();
@@ -233,6 +237,7 @@ export const Neighbourhood = ({ currentUser }) => {
       containerCurr.removeChild(renderer.domElement);
       containerCurr.removeChild(stats.dom);
       unsubscribeRoomObjects();
+      roomObjects.current = {};
     };
   }, [currentUser]);
   return (
@@ -247,6 +252,21 @@ export const Neighbourhood = ({ currentUser }) => {
       <button className="add-object" onClick={() => setObjectFormIsOpen(true)}>
         drop something
       </button>
+      <div className="decal-switch-container">
+        {Object.values(DECAL_TYPES).map((type) => (
+          <button
+            className={`decal-switch-button${
+              type === currentDecalType ? " selected" : ""
+            }`}
+            onClick={() => {
+              switchDecal.current(type);
+              setCurrentDecalType(type);
+            }}
+          >
+            {type}
+          </button>
+        ))}
+      </div>
       {objectFormIsOpen && (
         <ObjectCreationForm
           handleInitiatePlaceNote={handlePlaceNote}

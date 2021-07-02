@@ -9,6 +9,7 @@ export const setupNeighbourhoodData = ({
   roomObjects,
 }) => {
   // get data
+  console.log("setting up objects");
   const publicRoom = db.collection("rooms").doc("public");
   const objectsRef = publicRoom.collection("objects");
   const unsubscribeObjects = objectsRef.onSnapshot((querySnapshot) => {
