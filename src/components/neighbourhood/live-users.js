@@ -44,7 +44,6 @@ const createUserObject =
       new THREE.MeshPhongMaterial({
         color: 0x80ee10,
         shininess: 100,
-        side: THREE.DoubleSide,
       })
     );
 
@@ -69,6 +68,7 @@ const createUserObject =
       chainWindow,
       // called when resource is loaded
       function (object) {
+        track(object.children[0]);
         const chainMeshGeometry = track(object.children[0].geometry);
         const chainObj = track(new THREE.Mesh(chainMeshGeometry, userMaterial));
         chainObj.scale.set(100, 100, 100);

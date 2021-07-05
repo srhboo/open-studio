@@ -14,6 +14,7 @@ export const pasteGroundDecal = ({
   intersects,
   helper,
   decalType,
+  pointerClickMeshes,
 }) => {
   const position = new THREE.Vector3();
   const orientation = new THREE.Euler();
@@ -26,8 +27,6 @@ export const pasteGroundDecal = ({
   position.copy(intersects.point);
 
   orientation.copy(helper.rotation);
-  console.log(position);
-  console.log(orientation);
 
   // if ( params.rotate ) orientation.z = Math.random() * 2 * Math.PI;
 
@@ -36,15 +35,14 @@ export const pasteGroundDecal = ({
 
   //   const material = decalMaterial.clone();
   //   material.color.setHex(Math.random() * 0xffffff);
-
-  const decal = track(
-    new THREE.Mesh(
-      new DecalGeometry(intersects.object, position, orientation, size),
-      decalMaterial
-    )
+  const decalGeo = track(
+    new DecalGeometry(intersects.object, position, orientation, size)
   );
+  const decal = track(new THREE.Mesh(decalGeo, decalMaterial));
   scene.add(decal);
+  pointerClickMeshes.push(decal);
   saveDecal({
+    decal,
     decalType,
     position: { x: position.x, y: position.y, z: position.z },
     orientation: { x: orientation.x, y: orientation.y, z: orientation.z },
@@ -52,7 +50,13 @@ export const pasteGroundDecal = ({
   });
 };
 
-export const loadDecals = ({ roomId = "public", scene, track, groundMesh }) => {
+export const loadDecals = ({
+  roomId = "public",
+  scene,
+  track,
+  groundMesh,
+  pointerClickMeshes,
+}) => {
   const room = db.collection("rooms").doc(roomId);
   const decalsRef = room.collection("decals");
   decalsRef.get().then((querySnapshot) => {
@@ -73,25 +77,24 @@ export const loadDecals = ({ roomId = "public", scene, track, groundMesh }) => {
 
       const getDecalMat = DECAL_MAT_FNS[decalType];
       const decalMaterial = getDecalMat({ track });
-
-      const decal = track(
-        new THREE.Mesh(
-          new DecalGeometry(
-            groundMesh,
-            decalPosition,
-            decalOrientation,
-            decalSize
-          ),
-          decalMaterial
+      const decalGeo = track(
+        new DecalGeometry(
+          groundMesh,
+          decalPosition,
+          decalOrientation,
+          decalSize
         )
       );
+      const decal = track(new THREE.Mesh(decalGeo, decalMaterial));
+      decal.booObjectId = doc.id;
       scene.add(decal);
-      console.log(doc.id, " => ", doc.data());
+      pointerClickMeshes.push(decal);
     });
   });
 };
 
 export const saveDecal = ({
+  decal,
   decalType,
   mesh = "ground",
   position,
@@ -109,20 +112,26 @@ export const saveDecal = ({
       orientation,
       size,
     })
+    .then((docRef) => {
+      decal.booObjectId = docRef.id;
+    })
     .catch((error) => {
       console.error("Error adding document: ", error);
     });
 };
 
-export const deleteDecal = ({ decalId, roomId = "public" }) => {
+export const deleteDecal = ({ decalId, roomId = "public", mesh, scene }) => {
   const room = db.collection("rooms").doc(roomId);
   const decalRef = room.collection("decals").doc(decalId);
   decalRef
     .delete()
     .then(() => {
       console.log("deleted decal", decalId);
+      if (mesh) {
+        scene.remove(mesh);
+      }
     })
-    .catch(() => {
-      console.log("error deleting decal", decalId);
+    .catch((error) => {
+      console.log(error);
     });
 };

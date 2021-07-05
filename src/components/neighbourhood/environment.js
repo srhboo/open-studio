@@ -1,5 +1,12 @@
 import * as THREE from "three";
 import { getRandomInt } from "../../utils/random";
+import { OBJLoader } from "../../utils/three-jsm/loaders/OBJLoader";
+import { GLTFLoader } from "../../utils/three-jsm/loaders/GLTFLoader";
+import nest from "../../assets/models/nest.glb";
+import grunge from "../../assets/textures/shader-8.png";
+import chimney from "../../assets/models/chimney1.gltf";
+import { EqualStencilFunc } from "three";
+
 const colours = [0xb35d58, 0xc2022c, 0x58a672, 0xbf9b45, 0x223870];
 function getRandomColor() {
   const index = getRandomInt(0, colours.length);
@@ -73,4 +80,62 @@ export const createRotatingPlatforms = ({
     });
   }
   return { rotatePlanes };
+};
+
+export const createNest = ({ scene, track, pointerClickMeshes }) => {
+  const loader = new GLTFLoader();
+  let loadedScene = {};
+  // Load a glTF resource
+  loader.load(
+    // resource URL
+    nest,
+    // called when the resource is loaded
+    function (gltf) {
+      const nest = track(gltf.scene);
+      scene.add(nest);
+      nest.scale.set(200, 200, 200);
+      nest.position.y = 400;
+      loadedScene = nest;
+    },
+    // called while loading is progressing
+    function (xhr) {
+      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+    },
+    // called when loading has errors
+    function (error) {
+      console.log("An error happened");
+    }
+  );
+
+  function rotateNest() {
+    if (loadedScene.rotateY) {
+      loadedScene.rotateY(0.002);
+    }
+  }
+  return { rotateNest };
+};
+
+export const createChimney = ({ scene, track }) => {
+  // Instantiate a loader
+  const loader = new GLTFLoader();
+
+  // Load a glTF resource
+  loader.load(
+    // resource URL
+    chimney,
+    // called when the resource is loaded
+    function (gltf) {
+      track(gltf.scene);
+      scene.add(gltf.scene);
+      console.log(gltf.scene);
+    },
+    // called while loading is progressing
+    function (xhr) {
+      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+    },
+    // called when loading has errors
+    function (error) {
+      console.log("An error happened");
+    }
+  );
 };

@@ -214,6 +214,7 @@ export const createGround = ({
   );
 
   const updatedGroundMesh = track(new THREE.Mesh(geometry, wallMaterial));
+  updatedGroundMesh.booObjectId = "ground";
   scene.add(updatedGroundMesh);
   return { updatedGroundMesh };
 };

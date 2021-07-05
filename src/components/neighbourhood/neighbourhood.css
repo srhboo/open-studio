@@ -23,3 +23,10 @@
   background-color: yellow;
   color: black;
 }
+.current-selection-container {
+  position: absolute;
+  top: 7rem;
+  left: 5rem;
+  background-color: black;
+  color: white;
+}

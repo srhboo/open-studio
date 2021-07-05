@@ -11,24 +11,32 @@ import { setupLiveUsers } from "./live-users";
 import { socket } from "../../utils/socketio";
 import { Events } from "../events/Events";
 import { sampleData } from "./ground-data";
-import { createRotatingPlatforms, createLights } from "./environment";
+import {
+  createRotatingPlatforms,
+  createLights,
+  createNest,
+  createChimney,
+} from "./environment";
 import { setupNeighbourhoodData } from "./neighbourhood-data";
 import { createObject } from "./objects";
 import { ObjectCreationForm } from "../object-creation-form/ObjectCreationForm";
 import { ObjectDisplay } from "../object-display/ObjectDisplay";
 import { DECAL_TYPES, DEFAULT_DECAL_TYPE } from "../decals/decal-types";
 import { loadDecals } from "./decals";
+import { Editor } from "../editor/Editor";
 
 export const Neighbourhood = ({ currentUser }) => {
   const containerEl = useRef(null);
   const roomId = "public";
   const [objectFormIsOpen, setObjectFormIsOpen] = useState(false);
   const [handlePlaceNote, setHandlePlaceNote] = useState(null);
+  const [currentSelection, setCurrentSelection] = useState(null);
   const roomObjects = useRef({});
+  const theScene = useRef(null);
   const [objectOnDisplayId, setObjectOnDisplayId] = useState("");
   const [currentDecalType, setCurrentDecalType] = useState(DEFAULT_DECAL_TYPE);
   const switchDecal = useRef(null);
-
+  console.log(currentUser);
   useEffect(() => {
     const resTracker = new ResourceTracker();
     const track = resTracker.track.bind(resTracker);
@@ -39,7 +47,7 @@ export const Neighbourhood = ({ currentUser }) => {
 
     let groundMesh, texture, textureData;
 
-    let cleanupUser, updateUser, updateRotatingPlanes;
+    let cleanupUser, updateUser, updateRotatingPlanes, updateNest;
 
     let unsubscribeRoomObjects;
 
@@ -66,6 +74,7 @@ export const Neighbourhood = ({ currentUser }) => {
       labelRenderer = initializeCSSRenderer();
 
       scene = new THREE.Scene();
+      theScene.current = scene;
       scene.background = new THREE.Color(0x000000);
 
       camera = new THREE.PerspectiveCamera(
@@ -106,14 +115,25 @@ export const Neighbourhood = ({ currentUser }) => {
       groundMesh = updatedGroundMesh;
       pointerClickMeshes.push(groundMesh);
 
-      loadDecals({ roomId: "public", scene, track, groundMesh });
-
-      const { rotatePlanes } = createRotatingPlatforms({
-        track,
+      loadDecals({
+        roomId: "public",
         scene,
+        track,
+        groundMesh,
         pointerClickMeshes,
       });
-      updateRotatingPlanes = rotatePlanes;
+
+      // const { rotatePlanes } = createRotatingPlatforms({
+      //   track,
+      //   scene,
+      //   pointerClickMeshes,
+      // });
+      // updateRotatingPlanes = rotatePlanes;
+
+      // const { rotateNest } = createNest({ scene, track, pointerClickMeshes });
+      // updateNest = rotateNest;
+
+      // createChimney({ scene, track });
 
       createLights({ track, scene });
 
@@ -125,13 +145,9 @@ export const Neighbourhood = ({ currentUser }) => {
         camera,
         pointerClickMeshes,
         scene,
+        setCurrentSelection,
       });
-      const {
-        currentHelper,
-        onPointerMove,
-        onPointerClick,
-        onPointerDoubleClick,
-      } = helperUtils;
+      const { currentHelper, onPointerMove, onPointerClick } = helperUtils;
       helper = currentHelper;
       switchHelper = helperUtils.switchHelper;
       switchDecal.current = helperUtils.switchDecal;
@@ -140,8 +156,6 @@ export const Neighbourhood = ({ currentUser }) => {
       containerEl.current.addEventListener("pointermove", onPointerMove);
 
       containerEl.current.addEventListener("click", onPointerClick);
-
-      containerEl.current.addEventListener("dblclick", onPointerDoubleClick);
 
       const { updateUserFigures, cleanupUserFigures } = setupLiveUsers({
         scene,
@@ -200,7 +214,8 @@ export const Neighbourhood = ({ currentUser }) => {
 
     function update() {
       updateUser();
-      updateRotatingPlanes();
+      // updateRotatingPlanes();
+      // updateNest();
       controls.update();
       stats && stats.update();
     }
@@ -267,6 +282,12 @@ export const Neighbourhood = ({ currentUser }) => {
           </button>
         ))}
       </div>
+      <div className="current-selection-container">
+        {currentSelection && currentSelection.booObjectId}
+      </div>
+      {currentSelection && (
+        <Editor mesh={currentSelection} scene={theScene.current} />
+      )}
       {objectFormIsOpen && (
         <ObjectCreationForm
           handleInitiatePlaceNote={handlePlaceNote}

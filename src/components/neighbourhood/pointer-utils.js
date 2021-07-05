@@ -11,6 +11,7 @@ export const createHelper = ({
   camera,
   pointerClickMeshes,
   scene,
+  setCurrentSelection,
 }) => {
   const geometryHelper = track(new THREE.ConeGeometry(20, 100, 3));
   geometryHelper.translate(0, 50, 0);
@@ -22,8 +23,9 @@ export const createHelper = ({
   let currentHelper = defaultHelper;
   let currentHelperType = "default";
 
+  let currentSelection = null;
+
   const switchHelper = (mesh) => {
-    console.log("switching");
     if (currentHelperType === "default") {
       currentHelper = mesh;
       defaultHelper.position.x = -100;
@@ -83,6 +85,13 @@ export const createHelper = ({
           if (intersects[0].object.callback) {
             intersects[0].object.callback();
           }
+          const intersectMesh = intersects.find(
+            (found) => found.object.booObjectId !== "ground"
+          );
+          if (intersectMesh) {
+            setCurrentSelection(intersectMesh.object);
+          }
+
           const intersectPoint = intersects[0].point;
           // affectPlaneAtPoint({
           //   point: {
@@ -100,6 +109,7 @@ export const createHelper = ({
               intersects: intersects[0],
               helper: currentHelper,
               decalType: currentDecalType,
+              pointerClickMeshes,
             });
           }
 
@@ -114,32 +124,11 @@ export const createHelper = ({
         }
       } else {
         const intersectsAll = raycaster.intersectObjects(scene.children);
+        console.log(intersectsAll);
         if (intersectsAll[0].object.callback) {
           console.log("callback found");
           intersectsAll[0].object.callback();
         }
-      }
-    }
-  };
-
-  const onPointerDoubleClick = (event) => {
-    if (event.target.tagName.toUpperCase() === "CANVAS") {
-      event.preventDefault();
-
-      const intersects = raycaster.intersectObjects(pointerClickMeshes);
-
-      //   if (intersectsHighlight.length > 0) {
-      //     if (intersectsHighlight[0].object.callback) {
-      //       intersectsHighlight[0].object.callback();
-      //     }
-      //   } else if (intersectsPosition.length > 0) {
-      //     // update position if floor
-      //     const intersectionPoint = intersectsPosition[0].point;
-      //     socket.emit("new destination", { position: intersectionPoint, roomId });
-      //   }
-      if (intersects.length > 0) {
-        const intersectPoint = intersects[0];
-        console.log(intersectPoint);
       }
     }
   };
@@ -150,6 +139,5 @@ export const createHelper = ({
     switchDecal,
     onPointerMove,
     onPointerClick,
-    onPointerDoubleClick,
   };
 };

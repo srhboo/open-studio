@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OBJLoader } from "../../utils/three-jsm/loaders/OBJLoader";
 import leaningMonolith from "../../assets/models/leaning-monolith.obj";
 import { getRandomInt } from "../../utils/random";
-
+import { db } from "../../index";
 // import { BLOOM_SCENE } from "./Bloom";
 export const createObject = ({
   scene,
@@ -46,6 +46,7 @@ export const createObject = ({
     leaningMonolith,
     // called when resource is loaded
     function (object) {
+      track(object.children[0]);
       const monoMeshGeometry = track(object.children[0].geometry);
       booObject.geometry = monoMeshGeometry;
       booObject.scale.set(100, 100, 100);
@@ -63,4 +64,45 @@ export const createObject = ({
   );
 
   return booObject;
+};
+
+export const addObject = ({ roomId, objectData }) => {
+  const room = db.collection("rooms").doc(roomId);
+  const objectsRef = room.collection("objects");
+  const { objectType, note, downloadUrl, imageUrl, newObject, currentUser } =
+    objectData;
+  objectsRef
+    .add({
+      type: objectType,
+      textContent: note,
+      imageUrl: downloadUrl || imageUrl,
+      position: {
+        x: newObject.position.x,
+        y: newObject.position.y,
+        z: newObject.position.z,
+      },
+      creator: {
+        auid: currentUser ? currentUser.auid : 666,
+        username: currentUser ? currentUser.username : "anonymous",
+      },
+    })
+    .catch((error) => {
+      console.error("Error adding document: ", error);
+    });
+};
+
+export const deleteObject = ({ decalId, roomId = "public", mesh, scene }) => {
+  const room = db.collection("rooms").doc(roomId);
+  const decalRef = room.collection("decals").doc(decalId);
+  decalRef
+    .delete()
+    .then(() => {
+      console.log("deleted decal", decalId);
+      if (mesh) {
+        scene.remove(mesh);
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 };
