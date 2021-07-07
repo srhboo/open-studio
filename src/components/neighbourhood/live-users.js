@@ -21,7 +21,6 @@ const createUserObject =
   ({ scene, userFigures, track, type = "sphere" }) =>
   ({ position, id, name }) => {
     let userGeometry;
-
     const userGroup = new THREE.Group();
     scene.add(userGroup);
     switch (type) {
@@ -41,9 +40,8 @@ const createUserObject =
     color.setHSL(Math.random(), 0.7, Math.random() * 0.2 + 0.05);
 
     const userMaterial = track(
-      new THREE.MeshPhongMaterial({
+      new THREE.MeshLambertMaterial({
         color: 0x80ee10,
-        shininess: 100,
       })
     );
 

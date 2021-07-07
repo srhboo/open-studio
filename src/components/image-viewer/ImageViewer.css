@@ -46,9 +46,7 @@
 }
 .cinematic-container .dialogue-container {
   z-index: 2;
-  flex-basis: 40%;
   background-color: transparent;
-  max-height: 90%;
 }
 .cinematic-container .display-buttons {
   top: 0;

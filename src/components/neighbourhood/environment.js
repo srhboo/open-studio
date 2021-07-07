@@ -1,11 +1,9 @@
 import * as THREE from "three";
 import { getRandomInt } from "../../utils/random";
-import { OBJLoader } from "../../utils/three-jsm/loaders/OBJLoader";
 import { GLTFLoader } from "../../utils/three-jsm/loaders/GLTFLoader";
 import nest from "../../assets/models/nest.glb";
-import grunge from "../../assets/textures/shader-8.png";
+import audioFlower from "../../assets/models/audio-flower.glb";
 import chimney from "../../assets/models/chimney1.gltf";
-import { EqualStencilFunc } from "three";
 
 const colours = [0xb35d58, 0xc2022c, 0x58a672, 0xbf9b45, 0x223870];
 function getRandomColor() {
@@ -93,9 +91,10 @@ export const createNest = ({ scene, track, pointerClickMeshes }) => {
     function (gltf) {
       const nest = track(gltf.scene);
       scene.add(nest);
-      nest.scale.set(200, 200, 200);
-      nest.position.y = 400;
+      nest.scale.set(300, 300, 300);
+      nest.position.y = 100;
       loadedScene = nest;
+      pointerClickMeshes.push(nest);
     },
     // called while loading is progressing
     function (xhr) {
@@ -112,6 +111,7 @@ export const createNest = ({ scene, track, pointerClickMeshes }) => {
       loadedScene.rotateY(0.002);
     }
   }
+
   return { rotateNest };
 };
 
@@ -138,4 +138,43 @@ export const createChimney = ({ scene, track }) => {
       console.log("An error happened");
     }
   );
+};
+
+export const createAudioFlower = ({ scene, track, pointerClickMeshes }) => {
+  const loader = new GLTFLoader();
+  let loadedScene = {};
+  // Load a glTF resource
+  loader.load(
+    // resource URL
+    audioFlower,
+    // called when the resource is loaded
+    function (gltf) {
+      const flower = track(gltf.scene);
+      scene.add(flower);
+      flower.children.forEach((child) => {
+        pointerClickMeshes.push(child);
+        child.callback = () => {
+          console.log("hello");
+        };
+      });
+      flower.scale.set(50, 50, 50);
+      flower.position.y = 500;
+      loadedScene = flower;
+    },
+    // called while loading is progressing
+    function (xhr) {
+      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+    },
+    // called when loading has errors
+    function (error) {
+      console.log("An error happened");
+    }
+  );
+
+  function rotateAudioFlower() {
+    if (loadedScene.rotateY) {
+      loadedScene.rotateY(0.002);
+    }
+  }
+  return { rotateAudioFlower };
 };

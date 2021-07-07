@@ -1,21 +1,35 @@
 .dialogue-container {
   background-color: rgb(5, 5, 0);
   display: flex;
-  flex-direction: column;
   color: white;
+  width: 100%;
+  align-items: flex-start;
 }
 .dialogue-form {
+  flex-basis: 50%;
   display: flex;
   flex-direction: column;
   padding: 1rem;
+  padding-right: 3rem;
 }
 .dialogue-list {
   list-style: none;
   text-align: left;
   margin: 0;
   padding: 0;
-  flex-basis: 90%;
+  padding-left: 2rem;
+  padding-top: 1rem;
+  flex-basis: 50%;
   overflow-y: scroll;
+}
+.dialogue-list::-webkit-scrollbar {
+  width: 1em;
+}
+.dialogue-list::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+.dialogue-list::-webkit-scrollbar-thumb {
+  border: 1px solid white;
 }
 .dialogue-contributor {
   font-weight: 600;
@@ -24,12 +38,15 @@
 }
 .message-container {
   padding: 1rem;
-  margin: 0.5rem;
+  margin: 1rem;
   box-sizing: border-box;
   background-color: rgb(5, 1, 2);
   min-width: 15rem;
-  border: 2px solid white;
+  border: 1px dashed white;
 }
 textarea.note-textarea {
   height: 10rem;
+  width: 100%;
+  background-color: black;
+  color: white;
 }

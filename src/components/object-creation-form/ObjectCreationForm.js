@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { TextCreationForm } from "./TextCreationForm";
 import { ImageCreationForm } from "./ImageCreationForm";
 import { VideoCreationForm } from "./VideoCreationForm";
@@ -12,10 +12,7 @@ export const ObjectCreationForm = ({
   closeForm,
   currentUser,
 }) => {
-  const [note, updateNote] = useState("");
-  const fileInput = useRef(null);
   const [objectType, setObjectType] = useState("text");
-  const [imageUrl, setImageUrl] = useState("");
 
   const handleReadyToPlace = ({ downloadUrl = "", note = "" }) => {
     const { newObject, switchHelper } = handleInitiatePlaceNote();
@@ -25,7 +22,6 @@ export const ObjectCreationForm = ({
           objectType,
           note,
           downloadUrl,
-          imageUrl,
           newObject,
           currentUser,
         },

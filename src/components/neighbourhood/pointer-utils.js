@@ -12,6 +12,7 @@ export const createHelper = ({
   pointerClickMeshes,
   scene,
   setCurrentSelection,
+  groundMesh,
 }) => {
   const geometryHelper = track(new THREE.ConeGeometry(20, 100, 3));
   geometryHelper.translate(0, 50, 0);
@@ -22,8 +23,6 @@ export const createHelper = ({
 
   let currentHelper = defaultHelper;
   let currentHelperType = "default";
-
-  let currentSelection = null;
 
   const switchHelper = (mesh) => {
     if (currentHelperType === "default") {
@@ -42,19 +41,29 @@ export const createHelper = ({
     currentDecalType = type;
   };
 
+  let customUrl = "";
+  const switchCustomUrl = (url) => {
+    customUrl = url;
+    console.log("url is,", url);
+  };
+
   const onPointerMove = (event) => {
     pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
     pointer.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
 
     // See if the ray from the camera into the world hits one of our meshes
-    const intersects = raycaster.intersectObjects(pointerClickMeshes);
+    let intersects;
+    if (currentHelperType === "default") {
+      intersects = raycaster.intersectObjects(pointerClickMeshes);
+    } else {
+      intersects = raycaster.intersectObjects([groundMesh]);
+    }
 
     // Toggle rotation bool for meshes that we clicked
     if (intersects.length > 0) {
       currentHelper.position.set(0, 0, 0);
       currentHelper.lookAt(intersects[0].face.normal);
-
       currentHelper.position.copy(intersects[0].point);
     }
   };
@@ -110,6 +119,7 @@ export const createHelper = ({
               helper: currentHelper,
               decalType: currentDecalType,
               pointerClickMeshes,
+              customUrl,
             });
           }
 
@@ -124,7 +134,6 @@ export const createHelper = ({
         }
       } else {
         const intersectsAll = raycaster.intersectObjects(scene.children);
-        console.log(intersectsAll);
         if (intersectsAll[0].object.callback) {
           console.log("callback found");
           intersectsAll[0].object.callback();
@@ -137,6 +146,7 @@ export const createHelper = ({
     currentHelper,
     switchHelper,
     switchDecal,
+    switchCustomUrl,
     onPointerMove,
     onPointerClick,
   };

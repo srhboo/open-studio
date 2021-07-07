@@ -17,10 +17,8 @@ export const createObject = ({
   color.setHSL(Math.random(), 0.7, Math.random() * 0.2 + 0.05);
 
   const objectMaterial = track(
-    new THREE.MeshPhongMaterial({
+    new THREE.MeshLambertMaterial({
       color,
-      shininess: 100,
-      side: THREE.DoubleSide,
     })
   );
 
@@ -30,12 +28,12 @@ export const createObject = ({
   booObject.position.z = position.z;
   // differentiate my property
   booObject.booObjectId = id;
+  addTo && addTo.push(booObject);
 
   booObject.callback = function () {
     console.log(booObject.booObjectId);
     setObjectOnDisplayId(booObject.booObjectId);
   };
-  addTo && addTo.push(booObject);
   scene.add(booObject);
 
   const loader = new OBJLoader();
@@ -69,13 +67,12 @@ export const createObject = ({
 export const addObject = ({ roomId, objectData }) => {
   const room = db.collection("rooms").doc(roomId);
   const objectsRef = room.collection("objects");
-  const { objectType, note, downloadUrl, imageUrl, newObject, currentUser } =
-    objectData;
+  const { objectType, note, downloadUrl, newObject, currentUser } = objectData;
   objectsRef
     .add({
       type: objectType,
       textContent: note,
-      imageUrl: downloadUrl || imageUrl,
+      downloadUrl,
       position: {
         x: newObject.position.x,
         y: newObject.position.y,
@@ -91,14 +88,16 @@ export const addObject = ({ roomId, objectData }) => {
     });
 };
 
-export const deleteObject = ({ decalId, roomId = "public", mesh, scene }) => {
+export const deleteObject = ({ objectId, roomId = "public", mesh, scene }) => {
   const room = db.collection("rooms").doc(roomId);
-  const decalRef = room.collection("decals").doc(decalId);
-  decalRef
+  const objectRef = room.collection("objects").doc(objectId);
+  objectRef
     .delete()
     .then(() => {
-      console.log("deleted decal", decalId);
+      console.log("deleted object", objectId);
       if (mesh) {
+        mesh.geometry.dispose();
+        mesh.material.dispose();
         scene.remove(mesh);
       }
     })

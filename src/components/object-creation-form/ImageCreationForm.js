@@ -3,7 +3,7 @@ import { uploadFileTo } from "../../utils/firebase/firebase-storage";
 
 export const ImageCreationForm = ({ currentUser, handleReadyToPlace }) => {
   const fileInput = useRef(null);
-  const [imageUrl, setImageUrl] = useState("");
+  const [, setImageUrl] = useState("");
   const [note, updateNote] = useState("");
   const handleSubmitImage = (e) => {
     e.preventDefault();

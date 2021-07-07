@@ -1,11 +1,7 @@
 import * as THREE from "three";
 import { DecalGeometry } from "../../utils/three-jsm/geometries/DecalGeometry";
-import greenMarble from "../../assets/green-marble-s.png";
-import wallImg from "../../assets/wall-fix.png";
-import { DDSLoader } from "../../utils/three-jsm/loaders/DDSLoader";
-import disturbTex from "../../assets/textures/disturb_dxt1_nomip.dds";
 
-import { DECAL_MAT_FNS } from "../decals/decal-types";
+import { DECAL_MAT_FNS, DECAL_TYPES } from "../decals/decal-types";
 import { db } from "../../index";
 
 export const pasteGroundDecal = ({
@@ -15,15 +11,14 @@ export const pasteGroundDecal = ({
   helper,
   decalType,
   pointerClickMeshes,
+  customUrl,
 }) => {
   const position = new THREE.Vector3();
   const orientation = new THREE.Euler();
   const size = new THREE.Vector3(10, 10, 10);
 
-  const loader = new DDSLoader();
-
   const getDecalMat = DECAL_MAT_FNS[decalType];
-  const decalMaterial = getDecalMat({ track });
+  const decalMaterial = getDecalMat({ track, customUrl });
   position.copy(intersects.point);
 
   orientation.copy(helper.rotation);
@@ -31,7 +26,11 @@ export const pasteGroundDecal = ({
   // if ( params.rotate ) orientation.z = Math.random() * 2 * Math.PI;
 
   // const scale = params.minScale + Math.random() * ( params.maxScale - params.minScale );
-  size.set(1000, 1000, 1000);
+  if (decalType === DECAL_TYPES.CUSTOM) {
+    size.set(100, 100, 100);
+  } else {
+    size.set(2000, 2000, 2000);
+  }
 
   //   const material = decalMaterial.clone();
   //   material.color.setHex(Math.random() * 0xffffff);
@@ -44,6 +43,7 @@ export const pasteGroundDecal = ({
   saveDecal({
     decal,
     decalType,
+    customUrl,
     position: { x: position.x, y: position.y, z: position.z },
     orientation: { x: orientation.x, y: orientation.y, z: orientation.z },
     size: { x: size.x, y: size.y, z: size.z },
@@ -61,7 +61,7 @@ export const loadDecals = ({
   const decalsRef = room.collection("decals");
   decalsRef.get().then((querySnapshot) => {
     querySnapshot.forEach((doc) => {
-      const { decalType, position, orientation, size } = doc.data();
+      const { decalType, position, orientation, size, customUrl } = doc.data();
 
       const decalPosition = new THREE.Vector3(
         position.x,
@@ -76,7 +76,7 @@ export const loadDecals = ({
       const decalSize = new THREE.Vector3(size.x, size.y, size.z);
 
       const getDecalMat = DECAL_MAT_FNS[decalType];
-      const decalMaterial = getDecalMat({ track });
+      const decalMaterial = getDecalMat({ track, customUrl });
       const decalGeo = track(
         new DecalGeometry(
           groundMesh,
@@ -101,6 +101,7 @@ export const saveDecal = ({
   orientation,
   size,
   roomId = "public",
+  customUrl = "",
 }) => {
   const room = db.collection("rooms").doc(roomId);
   const decalsRef = room.collection("decals");
@@ -111,6 +112,7 @@ export const saveDecal = ({
       position,
       orientation,
       size,
+      customUrl,
     })
     .then((docRef) => {
       decal.booObjectId = docRef.id;

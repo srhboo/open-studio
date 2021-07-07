@@ -1,3 +1,4 @@
+/* eslint-disable */
 import * as THREE from "three";
 const { BufferGeometry, Float32BufferAttribute, Matrix4, Vector3 } = THREE;
 

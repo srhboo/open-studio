@@ -52,6 +52,11 @@ export class UserFigure {
   }
   clean(scene) {
     this.removeLabel();
+    this.mesh.children.forEach((child) => {
+      if (child instanceof THREE.Object3D) {
+        scene.remove(child);
+      }
+    });
     scene.remove(this.mesh);
     this.mesh = null;
     this.destination = null;

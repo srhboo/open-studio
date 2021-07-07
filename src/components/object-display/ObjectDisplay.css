@@ -23,6 +23,47 @@
   color: white;
   z-index: 1;
   padding: 2rem;
+  margin-top: 10rem;
+}
+.video-display-container {
+  display: flex;
+  text-align: left;
+}
+.text-display-container {
+  padding: 2rem;
+  min-width: 40vw;
+}
+.creator-container {
+  text-align: left;
+  padding-top: 2rem;
+}
+.sound-display-container {
+  display: flex;
+  text-align: left;
+}
+.sound-display-container audio {
+  margin-top: 2rem;
+  margin-right: 2rem;
+}
+.object-display-container {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  height: 100%;
+  overflow-y: scroll;
+  width: 100%;
+}
+.close-button {
+  position: fixed;
+  top: 2rem;
+  right: 5rem;
+  font-size: 2rem;
+  z-index: 5;
+}
+iframe {
+  height: 360px;
+  width: 480px;
 }
 
 .fade-in {

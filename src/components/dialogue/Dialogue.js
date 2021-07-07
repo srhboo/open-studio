@@ -3,7 +3,11 @@ import "./Dialogue.css";
 import { db } from "../../index";
 
 // one dialogue stream per one object (photo, note)
-export const Dialogue = ({ objectId, roomId, currentUser }) => {
+export const Dialogue = ({
+  objectId,
+  roomId,
+  currentUser = { username: "anonymous", auid: "666" },
+}) => {
   // consists of one form to add to dialogue
   // and list of preexisting dialogues
   // object is in charge of knowing its dialogue id

@@ -12,10 +12,11 @@ import { socket } from "../../utils/socketio";
 import { Events } from "../events/Events";
 import { sampleData } from "./ground-data";
 import {
-  createRotatingPlatforms,
+  // createRotatingPlatforms,
   createLights,
   createNest,
-  createChimney,
+  createAudioFlower,
+  // createChimney,
 } from "./environment";
 import { setupNeighbourhoodData } from "./neighbourhood-data";
 import { createObject } from "./objects";
@@ -32,22 +33,27 @@ export const Neighbourhood = ({ currentUser }) => {
   const [handlePlaceNote, setHandlePlaceNote] = useState(null);
   const [currentSelection, setCurrentSelection] = useState(null);
   const roomObjects = useRef({});
-  const theScene = useRef(null);
   const [objectOnDisplayId, setObjectOnDisplayId] = useState("");
   const [currentDecalType, setCurrentDecalType] = useState(DEFAULT_DECAL_TYPE);
   const switchDecal = useRef(null);
-  console.log(currentUser);
+  const switchDecalUrl = useRef("");
+  const sceneRef = useRef(null);
+  const trackRef = useRef(null);
+  const updateUserRef = useRef(() => {});
+  const cleanupUserRef = useRef(() => {});
+
   useEffect(() => {
+    console.log("use effect 1");
     const resTracker = new ResourceTracker();
     const track = resTracker.track.bind(resTracker);
-
+    trackRef.current = track;
     let stats;
 
-    let camera, controls, scene, renderer;
+    let camera, controls, renderer, scene;
 
-    let groundMesh, texture, textureData;
-
-    let cleanupUser, updateUser, updateRotatingPlanes, updateNest;
+    let groundMesh;
+    // let texture, textureData;
+    // let updateRotatingPlanes, updateNest;
 
     let unsubscribeRoomObjects;
 
@@ -62,6 +68,8 @@ export const Neighbourhood = ({ currentUser }) => {
 
     let helper;
 
+    let cleanupUser = cleanupUserRef.current;
+
     let pointerClickMeshes = [];
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
@@ -72,9 +80,8 @@ export const Neighbourhood = ({ currentUser }) => {
     function init() {
       initializeRenderer();
       labelRenderer = initializeCSSRenderer();
-
       scene = new THREE.Scene();
-      theScene.current = scene;
+      sceneRef.current = scene;
       scene.background = new THREE.Color(0x000000);
 
       camera = new THREE.PerspectiveCamera(
@@ -130,7 +137,14 @@ export const Neighbourhood = ({ currentUser }) => {
       // });
       // updateRotatingPlanes = rotatePlanes;
 
-      // const { rotateNest } = createNest({ scene, track, pointerClickMeshes });
+      createNest({ scene, track, pointerClickMeshes });
+      /* eslint-disable */
+      const { rotateAudioFlower } = createAudioFlower({
+        scene,
+        track,
+        pointerClickMeshes,
+      });
+      /* eslint-enable */
       // updateNest = rotateNest;
 
       // createChimney({ scene, track });
@@ -145,26 +159,20 @@ export const Neighbourhood = ({ currentUser }) => {
         camera,
         pointerClickMeshes,
         scene,
+        groundMesh,
         setCurrentSelection,
       });
-      const { currentHelper, onPointerMove, onPointerClick } = helperUtils;
+      const { currentHelper, onPointerMove, onPointerClick, switchCustomUrl } =
+        helperUtils;
       helper = currentHelper;
       switchHelper = helperUtils.switchHelper;
       switchDecal.current = helperUtils.switchDecal;
+      switchDecalUrl.current = switchCustomUrl;
       scene.add(helper);
 
       containerEl.current.addEventListener("pointermove", onPointerMove);
 
       containerEl.current.addEventListener("click", onPointerClick);
-
-      const { updateUserFigures, cleanupUserFigures } = setupLiveUsers({
-        scene,
-        track,
-        roomId,
-        currentUser,
-      });
-      cleanupUser = cleanupUserFigures;
-      updateUser = updateUserFigures;
 
       stats = new Stats();
       containerEl.current.appendChild(stats.dom);
@@ -213,7 +221,8 @@ export const Neighbourhood = ({ currentUser }) => {
     }
 
     function update() {
-      updateUser();
+      updateUserRef.current();
+      cleanupUser();
       // updateRotatingPlanes();
       // updateNest();
       controls.update();
@@ -247,19 +256,32 @@ export const Neighbourhood = ({ currentUser }) => {
 
     return () => {
       resTracker.dispose();
-      cleanupUser();
       socket.removeAllListeners();
       containerCurr.removeChild(renderer.domElement);
       containerCurr.removeChild(stats.dom);
       unsubscribeRoomObjects();
       roomObjects.current = {};
     };
+  }, []);
+
+  useEffect(() => {
+    const { updateUserFigures, cleanupUserFigures } = setupLiveUsers({
+      scene: sceneRef.current,
+      track: trackRef.current,
+      roomId,
+      currentUser,
+    });
+    updateUserRef.current = updateUserFigures;
+    cleanupUserRef.current = cleanupUserFigures;
+    return () => {
+      cleanupUserFigures();
+    };
   }, [currentUser]);
   return (
     <React.Fragment>
       {objectOnDisplayId && roomObjects.current[objectOnDisplayId] && (
         <ObjectDisplay
-          roomObjects={roomObjects.current}
+          currentUser={currentUser}
           objectOnDisplay={roomObjects.current[objectOnDisplayId]}
           closeDisplay={() => setObjectOnDisplayId("")}
         />
@@ -268,25 +290,31 @@ export const Neighbourhood = ({ currentUser }) => {
         drop something
       </button>
       <div className="decal-switch-container">
-        {Object.values(DECAL_TYPES).map((type) => (
-          <button
-            className={`decal-switch-button${
-              type === currentDecalType ? " selected" : ""
-            }`}
-            onClick={() => {
-              switchDecal.current(type);
-              setCurrentDecalType(type);
-            }}
-          >
-            {type}
-          </button>
-        ))}
+        <select
+          value={currentDecalType}
+          onChange={(e) => {
+            switchDecal.current(e.target.value);
+            setCurrentDecalType(e.target.value);
+          }}
+        >
+          {Object.values(DECAL_TYPES).map((type) => (
+            <option value={type} key={`${type}-decal-option`}>
+              {type}
+            </option>
+          ))}
+        </select>
+        {currentDecalType === DECAL_TYPES.CUSTOM && (
+          <input
+            type="text"
+            onChange={(e) => switchDecalUrl.current(e.target.value)}
+          />
+        )}
       </div>
       <div className="current-selection-container">
         {currentSelection && currentSelection.booObjectId}
       </div>
       {currentSelection && (
-        <Editor mesh={currentSelection} scene={theScene.current} />
+        <Editor mesh={currentSelection} scene={sceneRef.current} />
       )}
       {objectFormIsOpen && (
         <ObjectCreationForm
