@@ -18,7 +18,7 @@ import chainWindow from "../../assets/models/chain-window2.obj";
 // https://codepen.io/smtrd/pen/MZVWpN
 
 const createUserObject =
-  ({ scene, userFigures, track, type = "sphere" }) =>
+  ({ scene, userFigures, track, type = "sphere", meRef }) =>
   ({ position, id, name }) => {
     let userGeometry;
     const userGroup = new THREE.Group();
@@ -50,6 +50,7 @@ const createUserObject =
     userGroup.position.y = position.y;
     userGroup.position.z = position.z;
     userGroup.add(userObject);
+    meRef.current = userObject;
 
     const loader = new OBJLoader();
 
@@ -98,7 +99,13 @@ const createUserObject =
     return userObject;
   };
 
-export const setupLiveUsers = ({ scene, track, roomId, currentUser }) => {
+export const setupLiveUsers = ({
+  scene,
+  track,
+  roomId,
+  currentUser,
+  meRef,
+}) => {
   console.log("setting up live users");
   const userFigures = {};
 
@@ -107,6 +114,7 @@ export const setupLiveUsers = ({ scene, track, roomId, currentUser }) => {
     userFigures,
     track,
     currentUser,
+    meRef,
   });
 
   setSocketOnUserConnected(function ({ connectedUser }) {
@@ -153,7 +161,7 @@ export const setupLiveUsers = ({ scene, track, roomId, currentUser }) => {
 
   const updateUserFigures = () => {
     for (const mesh of Object.values(userFigures)) {
-      mesh && mesh.updatePosition(5);
+      mesh && mesh.updatePosition(10);
     }
   };
 

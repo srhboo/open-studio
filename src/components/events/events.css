@@ -6,7 +6,7 @@
   width: 20rem;
   display: flex;
   flex-direction: column;
-  background: rgba(230, 171, 7, 0.3);
+  background: rgba(0, 0, 0, 0.3);
 }
 .events-list {
   flex-grow: 1;

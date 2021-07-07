@@ -25,6 +25,7 @@ import { ObjectDisplay } from "../object-display/ObjectDisplay";
 import { DECAL_TYPES, DEFAULT_DECAL_TYPE } from "../decals/decal-types";
 import { loadDecals } from "./decals";
 import { Editor } from "../editor/Editor";
+import { Welcome } from "../welcome/Welcome";
 
 export const Neighbourhood = ({ currentUser }) => {
   const containerEl = useRef(null);
@@ -39,11 +40,14 @@ export const Neighbourhood = ({ currentUser }) => {
   const switchDecalUrl = useRef("");
   const sceneRef = useRef(null);
   const trackRef = useRef(null);
+  const cameraRef = useRef(null);
+  const meRef = useRef(null);
+  const audioFlowerPlaying = useRef(false);
   const updateUserRef = useRef(() => {});
   const cleanupUserRef = useRef(() => {});
+  const [welcomeIsDisplayed, setWelcomeIsDisplayed] = useState(true);
 
   useEffect(() => {
-    console.log("use effect 1");
     const resTracker = new ResourceTracker();
     const track = resTracker.track.bind(resTracker);
     trackRef.current = track;
@@ -51,7 +55,7 @@ export const Neighbourhood = ({ currentUser }) => {
 
     let camera, controls, renderer, scene;
 
-    let groundMesh;
+    let groundMesh, updateFlower;
     // let texture, textureData;
     // let updateRotatingPlanes, updateNest;
 
@@ -90,6 +94,7 @@ export const Neighbourhood = ({ currentUser }) => {
         10,
         20000
       );
+      cameraRef.current = camera;
 
       controls = initializeControls();
 
@@ -106,9 +111,9 @@ export const Neighbourhood = ({ currentUser }) => {
       const data = sampleData;
 
       controls.target.y =
-        data[worldHalfWidth + worldHalfDepth * worldWidth] + 500;
+        data[worldHalfWidth + worldHalfDepth * worldWidth] + 1000;
 
-      camera.position.y = controls.target.y + 500;
+      camera.position.y = controls.target.y - 800;
       camera.position.x = 2000;
       controls.update();
 
@@ -138,13 +143,14 @@ export const Neighbourhood = ({ currentUser }) => {
       // updateRotatingPlanes = rotatePlanes;
 
       createNest({ scene, track, pointerClickMeshes });
-      /* eslint-disable */
+
       const { rotateAudioFlower } = createAudioFlower({
         scene,
         track,
         pointerClickMeshes,
+        audioFlowerPlaying,
       });
-      /* eslint-enable */
+      updateFlower = rotateAudioFlower;
       // updateNest = rotateNest;
 
       // createChimney({ scene, track });
@@ -225,6 +231,13 @@ export const Neighbourhood = ({ currentUser }) => {
       cleanupUser();
       // updateRotatingPlanes();
       // updateNest();
+      if (audioFlowerPlaying.current) {
+        updateFlower();
+      }
+      // if (cameraRef.current && meRef.current) {
+      //   controls.target = meRef.current.position;
+      // }
+
       controls.update();
       stats && stats.update();
     }
@@ -268,8 +281,10 @@ export const Neighbourhood = ({ currentUser }) => {
     const { updateUserFigures, cleanupUserFigures } = setupLiveUsers({
       scene: sceneRef.current,
       track: trackRef.current,
+      camera: cameraRef.current,
       roomId,
       currentUser,
+      meRef,
     });
     updateUserRef.current = updateUserFigures;
     cleanupUserRef.current = cleanupUserFigures;
@@ -279,6 +294,9 @@ export const Neighbourhood = ({ currentUser }) => {
   }, [currentUser]);
   return (
     <React.Fragment>
+      {welcomeIsDisplayed && (
+        <Welcome closeDisplay={() => setWelcomeIsDisplayed(false)} />
+      )}
       {objectOnDisplayId && roomObjects.current[objectOnDisplayId] && (
         <ObjectDisplay
           currentUser={currentUser}
@@ -290,6 +308,7 @@ export const Neighbourhood = ({ currentUser }) => {
         drop something
       </button>
       <div className="decal-switch-container">
+        decal type (select one and click to paste):{" "}
         <select
           value={currentDecalType}
           onChange={(e) => {
@@ -314,7 +333,11 @@ export const Neighbourhood = ({ currentUser }) => {
         {currentSelection && currentSelection.booObjectId}
       </div>
       {currentSelection && (
-        <Editor mesh={currentSelection} scene={sceneRef.current} />
+        <Editor
+          mesh={currentSelection}
+          scene={sceneRef.current}
+          currentUser={currentUser}
+        />
       )}
       {objectFormIsOpen && (
         <ObjectCreationForm

@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OBJLoader } from "../../utils/three-jsm/loaders/OBJLoader";
 import leaningMonolith from "../../assets/models/leaning-monolith.obj";
 import { getRandomInt } from "../../utils/random";
+import { deleteAllDialogue } from "../../utils/firebase/firebase-auth";
 import { db } from "../../index";
 // import { BLOOM_SCENE } from "./Bloom";
 export const createObject = ({
@@ -11,6 +12,7 @@ export const createObject = ({
   id,
   addTo,
   setObjectOnDisplayId,
+  creator,
 }) => {
   const objectGeometry = track(new THREE.SphereGeometry(50, 32, 32));
   const color = new THREE.Color();
@@ -28,6 +30,7 @@ export const createObject = ({
   booObject.position.z = position.z;
   // differentiate my property
   booObject.booObjectId = id;
+  booObject.creator = creator;
   addTo && addTo.push(booObject);
 
   booObject.callback = function () {
@@ -91,17 +94,19 @@ export const addObject = ({ roomId, objectData }) => {
 export const deleteObject = ({ objectId, roomId = "public", mesh, scene }) => {
   const room = db.collection("rooms").doc(roomId);
   const objectRef = room.collection("objects").doc(objectId);
-  objectRef
-    .delete()
-    .then(() => {
-      console.log("deleted object", objectId);
-      if (mesh) {
-        mesh.geometry.dispose();
-        mesh.material.dispose();
-        scene.remove(mesh);
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+  deleteAllDialogue({ roomId, objectId }).then(() =>
+    objectRef
+      .delete()
+      .then(() => {
+        console.log("deleted object", objectId);
+        if (mesh) {
+          mesh.geometry.dispose();
+          mesh.material.dispose();
+          scene.remove(mesh);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+  );
 };

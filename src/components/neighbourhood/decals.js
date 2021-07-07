@@ -17,6 +17,8 @@ export const pasteGroundDecal = ({
   const orientation = new THREE.Euler();
   const size = new THREE.Vector3(10, 10, 10);
 
+  const isOnGround = intersects.object.booObjectId === "ground";
+
   const getDecalMat = DECAL_MAT_FNS[decalType];
   const decalMaterial = getDecalMat({ track, customUrl });
   position.copy(intersects.point);
@@ -29,7 +31,7 @@ export const pasteGroundDecal = ({
   if (decalType === DECAL_TYPES.CUSTOM) {
     size.set(100, 100, 100);
   } else {
-    size.set(2000, 2000, 2000);
+    size.set(500, 500, 500);
   }
 
   //   const material = decalMaterial.clone();
@@ -40,14 +42,17 @@ export const pasteGroundDecal = ({
   const decal = track(new THREE.Mesh(decalGeo, decalMaterial));
   scene.add(decal);
   pointerClickMeshes.push(decal);
-  saveDecal({
-    decal,
-    decalType,
-    customUrl,
-    position: { x: position.x, y: position.y, z: position.z },
-    orientation: { x: orientation.x, y: orientation.y, z: orientation.z },
-    size: { x: size.x, y: size.y, z: size.z },
-  });
+  if (isOnGround) {
+    console.log("is on ground");
+    saveDecal({
+      decal,
+      decalType,
+      customUrl,
+      position: { x: position.x, y: position.y, z: position.z },
+      orientation: { x: orientation.x, y: orientation.y, z: orientation.z },
+      size: { x: size.x, y: size.y, z: size.z },
+    });
+  }
 };
 
 export const loadDecals = ({
@@ -61,7 +66,8 @@ export const loadDecals = ({
   const decalsRef = room.collection("decals");
   decalsRef.get().then((querySnapshot) => {
     querySnapshot.forEach((doc) => {
-      const { decalType, position, orientation, size, customUrl } = doc.data();
+      const { decalType, position, orientation, size, customUrl, permanent } =
+        doc.data();
 
       const decalPosition = new THREE.Vector3(
         position.x,
@@ -87,6 +93,7 @@ export const loadDecals = ({
       );
       const decal = track(new THREE.Mesh(decalGeo, decalMaterial));
       decal.booObjectId = doc.id;
+      decal.permanent = permanent;
       scene.add(decal);
       pointerClickMeshes.push(decal);
     });

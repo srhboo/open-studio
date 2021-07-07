@@ -55,6 +55,11 @@ export const Dialogue = ({
   return (
     <div className="dialogue-container">
       <ul className="dialogue-list">
+        {dialogueList.length === 0 && (
+          <li className="message-container" key={"no-msg"}>
+            quiet so far...
+          </li>
+        )}
         {dialogueList.map(({ contributor, message }) => (
           <li className="message-container" key={message}>
             {message}

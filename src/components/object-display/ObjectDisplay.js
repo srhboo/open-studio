@@ -9,7 +9,6 @@ export const ObjectDisplay = ({
   closeDisplay,
   currentUser,
 }) => {
-  console.log(objectOnDisplay);
   const { type, textContent, downloadUrl, creator, objectId } = objectOnDisplay;
   let content;
   switch (type) {

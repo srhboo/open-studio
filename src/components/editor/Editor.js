@@ -4,7 +4,7 @@ import "./editor.css";
 import { deleteDecal } from "../neighbourhood/decals";
 import { deleteObject } from "../neighbourhood/objects";
 
-export const Editor = ({ mesh, scene }) => {
+export const Editor = ({ mesh, scene, currentUser }) => {
   // objects
   // size
   // position
@@ -20,21 +20,29 @@ export const Editor = ({ mesh, scene }) => {
 
   //delete
   console.log(mesh.booObjectId);
+  let canDelete;
+  if (mesh.geometry instanceof DecalGeometry) {
+    canDelete = !mesh.permanent;
+  } else {
+    canDelete =
+      (currentUser && mesh.creator && mesh.creator.auid === currentUser.auid) ||
+      (mesh.creator && mesh.creator.username === "anonymous");
+  }
 
   const handleClickDelete = () => {
     if (mesh.geometry instanceof DecalGeometry) {
-      console.log("its a decal");
       deleteDecal({ decalId: mesh.booObjectId, mesh, scene });
     } else {
-      console.log("its an object");
       deleteObject({ objectId: mesh.booObjectId, mesh, scene });
     }
   };
   return (
     <div className="editor-container">
-      <button type="button" onClick={handleClickDelete}>
-        delete
-      </button>
+      {canDelete && (
+        <button type="button" onClick={handleClickDelete}>
+          delete
+        </button>
+      )}
     </div>
   );
 };

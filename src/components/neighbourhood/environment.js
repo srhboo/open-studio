@@ -1,9 +1,11 @@
 import * as THREE from "three";
+import * as Tone from "tone";
 import { getRandomInt } from "../../utils/random";
 import { GLTFLoader } from "../../utils/three-jsm/loaders/GLTFLoader";
 import nest from "../../assets/models/nest.glb";
 import audioFlower from "../../assets/models/audio-flower.glb";
 import chimney from "../../assets/models/chimney1.gltf";
+import highParkAudio1 from "../../assets/audio/highpark-1.mp3";
 
 const colours = [0xb35d58, 0xc2022c, 0x58a672, 0xbf9b45, 0x223870];
 function getRandomColor() {
@@ -140,7 +142,12 @@ export const createChimney = ({ scene, track }) => {
   );
 };
 
-export const createAudioFlower = ({ scene, track, pointerClickMeshes }) => {
+export const createAudioFlower = ({
+  scene,
+  track,
+  pointerClickMeshes,
+  audioFlowerPlaying,
+}) => {
   const loader = new GLTFLoader();
   let loadedScene = {};
   // Load a glTF resource
@@ -154,7 +161,15 @@ export const createAudioFlower = ({ scene, track, pointerClickMeshes }) => {
       flower.children.forEach((child) => {
         pointerClickMeshes.push(child);
         child.callback = () => {
-          console.log("hello");
+          const player = new Tone.Player(highParkAudio1, () => {
+            audioFlowerPlaying.current = true;
+          }).toDestination();
+          // play as soon as the buffer is loaded
+          player.autostart = true;
+          player.onstop = () => {
+            audioFlowerPlaying.current = false;
+            player.dispose();
+          };
         };
       });
       flower.scale.set(50, 50, 50);
@@ -173,7 +188,7 @@ export const createAudioFlower = ({ scene, track, pointerClickMeshes }) => {
 
   function rotateAudioFlower() {
     if (loadedScene.rotateY) {
-      loadedScene.rotateY(0.002);
+      loadedScene.rotateY(0.005);
     }
   }
   return { rotateAudioFlower };

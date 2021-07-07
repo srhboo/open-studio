@@ -27,6 +27,7 @@ export const setupNeighbourhoodData = ({
           id: doc.id,
           addTo: pointerClickMeshes,
           setObjectOnDisplayId,
+          creator: objectTemp.creator,
         });
       }
       roomObjects[doc.id] = {

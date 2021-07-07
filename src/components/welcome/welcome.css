@@ -1,0 +1,7 @@
+.welcome-container {
+  background-color: black;
+  color: white;
+  z-index: 5;
+  width: 50vw;
+  padding: 5rem;
+}
