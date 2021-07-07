@@ -16,7 +16,8 @@ export const Welcome = ({ closeDisplay }) => {
           <p>welcome! </p>
           <p>
             make yourself at home - feel free to add to the neighbourhood or
-            just take a look around.
+            just take a look around. left click + drag to rotate camera, right
+            click + drag to pan, scroll to zoom. click to move.
           </p>
           <p>enabling audio now.</p>
         </div>
