@@ -3,11 +3,14 @@ import { TextCreationForm } from "./TextCreationForm";
 import { ImageCreationForm } from "./ImageCreationForm";
 import { VideoCreationForm } from "./VideoCreationForm";
 import { SoundCreationForm } from "./SoundCreationForm";
+import { DecalCreationForm } from "./DecalCreationForm";
 import { addObject } from "../neighbourhood/objects";
+import { pasteGroundDecal } from "../neighbourhood/decals";
 import "./ObjectCreationForm.css";
 
 export const ObjectCreationForm = ({
   handleInitiatePlaceNote,
+  handleInitiatePlaceDecal,
   roomId = "public",
   closeForm,
   currentUser,
@@ -26,6 +29,31 @@ export const ObjectCreationForm = ({
           currentUser,
         },
         roomId,
+      });
+      switchHelper();
+    };
+    switchHelper(newObject);
+    closeForm();
+  };
+
+  const handleReadyToPlaceDecal = ({ customUrl, decalType }) => {
+    const { newObject, switchHelper } = handleInitiatePlaceDecal();
+    console.log(newObject);
+    newObject.callback = ({
+      intersects,
+      track,
+      scene,
+      helper,
+      pointerClickMeshes,
+    }) => {
+      pasteGroundDecal({
+        track,
+        scene,
+        intersects,
+        helper,
+        decalType,
+        pointerClickMeshes,
+        customUrl,
       });
       switchHelper();
     };
@@ -76,6 +104,15 @@ export const ObjectCreationForm = ({
           >
             sound
           </button>
+          <button
+            type="button"
+            className={`object-type-button${
+              objectType === "decal" ? " pressed" : ""
+            }`}
+            onClick={() => setObjectType("decal")}
+          >
+            decal
+          </button>
         </div>
         {objectType === "text" && (
           <TextCreationForm handleReadyToPlace={handleReadyToPlace} />
@@ -92,6 +129,12 @@ export const ObjectCreationForm = ({
         {objectType === "sound" && (
           <SoundCreationForm
             handleReadyToPlace={handleReadyToPlace}
+            currentUser={currentUser}
+          />
+        )}
+        {objectType === "decal" && (
+          <DecalCreationForm
+            handleReadyToPlace={handleReadyToPlaceDecal}
             currentUser={currentUser}
           />
         )}

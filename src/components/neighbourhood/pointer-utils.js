@@ -1,7 +1,5 @@
 import * as THREE from "three";
 import { socket } from "../../utils/socketio";
-import { pasteGroundDecal } from "./decals";
-import { DECAL_TYPES, DEFAULT_DECAL_TYPE } from "../decals/decal-types";
 
 export const createHelper = ({
   track,
@@ -27,24 +25,13 @@ export const createHelper = ({
   const switchHelper = (mesh) => {
     if (currentHelperType === "default") {
       currentHelper = mesh;
-      defaultHelper.position.x = -100;
+      defaultHelper.position.x = -1000;
       currentHelperType = "object";
     } else {
       scene.remove(currentHelper);
       currentHelper = defaultHelper;
       currentHelperType = "default";
     }
-  };
-
-  let currentDecalType = DEFAULT_DECAL_TYPE;
-  const switchDecal = (type) => {
-    currentDecalType = type;
-  };
-
-  let customUrl = "";
-  const switchCustomUrl = (url) => {
-    customUrl = url;
-    console.log("url is,", url);
   };
 
   const onPointerMove = (event) => {
@@ -78,18 +65,8 @@ export const createHelper = ({
       //   const intersectsPosition = raycaster.intersectObjects(
       //     raycastHelperObjects
       //   );
+      const intersects = raycaster.intersectObjects(pointerClickMeshes);
       if (currentHelperType === "default") {
-        const intersects = raycaster.intersectObjects(pointerClickMeshes);
-
-        //   if (intersectsHighlight.length > 0) {
-        //     if (intersectsHighlight[0].object.callback) {
-        //       intersectsHighlight[0].object.callback();
-        //     }
-        //   } else if (intersectsPosition.length > 0) {
-        //     // update position if floor
-        //     const intersectionPoint = intersectsPosition[0].point;
-        //     socket.emit("new destination", { position: intersectionPoint, roomId });
-        //   }
         if (intersects.length > 0) {
           if (intersects[0].object.callback) {
             intersects[0].object.callback();
@@ -111,17 +88,6 @@ export const createHelper = ({
           //   mesh: groundMesh,
           //   textureData,
           // });
-          if (currentDecalType && currentDecalType !== DECAL_TYPES.NONE) {
-            pasteGroundDecal({
-              track,
-              scene,
-              intersects: intersects[0],
-              helper: currentHelper,
-              decalType: currentDecalType,
-              pointerClickMeshes,
-              customUrl,
-            });
-          }
 
           socket.emit("new destination", {
             position: {
@@ -134,9 +100,14 @@ export const createHelper = ({
         }
       } else {
         const intersectsAll = raycaster.intersectObjects(scene.children);
-        if (intersectsAll[0].object.callback) {
-          console.log("callback found");
-          intersectsAll[0].object.callback();
+        if (intersectsAll[0] && intersectsAll[0].object.callback) {
+          intersectsAll[0].object.callback({
+            track,
+            scene,
+            intersects: intersects[0],
+            helper: currentHelper,
+            pointerClickMeshes,
+          });
         }
       }
     }
@@ -145,8 +116,6 @@ export const createHelper = ({
   return {
     currentHelper,
     switchHelper,
-    switchDecal,
-    switchCustomUrl,
     onPointerMove,
     onPointerClick,
   };

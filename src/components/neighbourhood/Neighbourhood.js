@@ -22,8 +22,7 @@ import { setupNeighbourhoodData } from "./neighbourhood-data";
 import { createObject } from "./objects";
 import { ObjectCreationForm } from "../object-creation-form/ObjectCreationForm";
 import { ObjectDisplay } from "../object-display/ObjectDisplay";
-import { DECAL_TYPES, DEFAULT_DECAL_TYPE } from "../decals/decal-types";
-import { loadDecals } from "./decals";
+import { loadDecals, createDecalHelper } from "./decals";
 import { Editor } from "../editor/Editor";
 import { Welcome } from "../welcome/Welcome";
 
@@ -32,12 +31,10 @@ export const Neighbourhood = ({ currentUser }) => {
   const roomId = "public";
   const [objectFormIsOpen, setObjectFormIsOpen] = useState(false);
   const [handlePlaceNote, setHandlePlaceNote] = useState(null);
+  const [handlePlaceDecal, setHandlePlaceDecal] = useState(null);
   const [currentSelection, setCurrentSelection] = useState(null);
   const roomObjects = useRef({});
   const [objectOnDisplayId, setObjectOnDisplayId] = useState("");
-  const [currentDecalType, setCurrentDecalType] = useState(DEFAULT_DECAL_TYPE);
-  const switchDecal = useRef(null);
-  const switchDecalUrl = useRef("");
   const sceneRef = useRef(null);
   const trackRef = useRef(null);
   const cameraRef = useRef(null);
@@ -51,6 +48,7 @@ export const Neighbourhood = ({ currentUser }) => {
     const resTracker = new ResourceTracker();
     const track = resTracker.track.bind(resTracker);
     trackRef.current = track;
+
     let stats;
 
     let camera, controls, renderer, scene;
@@ -168,12 +166,9 @@ export const Neighbourhood = ({ currentUser }) => {
         groundMesh,
         setCurrentSelection,
       });
-      const { currentHelper, onPointerMove, onPointerClick, switchCustomUrl } =
-        helperUtils;
+      const { currentHelper, onPointerMove, onPointerClick } = helperUtils;
       helper = currentHelper;
       switchHelper = helperUtils.switchHelper;
-      switchDecal.current = helperUtils.switchDecal;
-      switchDecalUrl.current = switchCustomUrl;
       scene.add(helper);
 
       containerEl.current.addEventListener("pointermove", onPointerMove);
@@ -265,6 +260,15 @@ export const Neighbourhood = ({ currentUser }) => {
     };
     setHandlePlaceNote(() => handleAddNote);
 
+    const handleAddDecal = () => {
+      const newObject = createDecalHelper({
+        track,
+        scene,
+      });
+      return { newObject, switchHelper };
+    };
+    setHandlePlaceDecal(() => handleAddDecal);
+
     const containerCurr = containerEl.current;
 
     return () => {
@@ -307,28 +311,6 @@ export const Neighbourhood = ({ currentUser }) => {
       <button className="add-object" onClick={() => setObjectFormIsOpen(true)}>
         drop something
       </button>
-      <div className="decal-switch-container">
-        decal type (select one and click to paste):{" "}
-        <select
-          value={currentDecalType}
-          onChange={(e) => {
-            switchDecal.current(e.target.value);
-            setCurrentDecalType(e.target.value);
-          }}
-        >
-          {Object.values(DECAL_TYPES).map((type) => (
-            <option value={type} key={`${type}-decal-option`}>
-              {type}
-            </option>
-          ))}
-        </select>
-        {currentDecalType === DECAL_TYPES.CUSTOM && (
-          <input
-            type="text"
-            onChange={(e) => switchDecalUrl.current(e.target.value)}
-          />
-        )}
-      </div>
       <div className="current-selection-container">
         {currentSelection && currentSelection.booObjectId}
       </div>
@@ -342,6 +324,7 @@ export const Neighbourhood = ({ currentUser }) => {
       {objectFormIsOpen && (
         <ObjectCreationForm
           handleInitiatePlaceNote={handlePlaceNote}
+          handleInitiatePlaceDecal={handlePlaceDecal}
           closeForm={() => setObjectFormIsOpen(false)}
           currentUser={currentUser}
         />

@@ -144,3 +144,19 @@ export const deleteDecal = ({ decalId, roomId = "public", mesh, scene }) => {
       console.log(error);
     });
 };
+
+export const createDecalHelper = ({ track, scene }) => {
+  // const geometryHelper = track(new THREE.BoxGeometry(100, 5, 100));
+  // geometryHelper.translate(0, 50, 0);
+
+  // const helperMaterial = track(new THREE.MeshNormalMaterial());
+  // const decalHelper = track(new THREE.Mesh(geometryHelper, helperMaterial));
+  const geometryHelper = track(new THREE.ConeGeometry(20, 100, 3));
+  geometryHelper.translate(0, 50, 0);
+  geometryHelper.rotateX(Math.PI / 2);
+
+  const helperMaterial = track(new THREE.MeshNormalMaterial());
+  const decalHelper = track(new THREE.Mesh(geometryHelper, helperMaterial));
+  scene.add(decalHelper);
+  return decalHelper;
+};
