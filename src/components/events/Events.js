@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import {
   socketSubmitChat,
   setSocketOnChat,
+  setSocketOnPlayAudio,
   socket,
 } from "../../utils/socketio";
 import "./events.css";
@@ -24,9 +25,15 @@ export const Events = ({ roomId }) => {
       eventsScrollRef.current.scrollTop = eventsScrollRef.current.scrollHeight;
     };
     setSocketOnChat(handleReceiveChat);
+
+    setSocketOnPlayAudio(function ({ name }) {
+      console.log("playing audio");
+      setEvents([...events, { message: `${name} has activated a sound` }]);
+    });
     // TODO: why does chat not work when logged in
     return () => {
-      socket.removeAllListeners("chat message");
+      // socket.removeAllListeners("chat message");
+      // socket.removeAllListeners("play audio");
     };
   }, [events]);
 
@@ -37,7 +44,7 @@ export const Events = ({ roomId }) => {
           <li
             className="event-list-item"
             key={`${event.name}${event.message}${i}`}
-          >{`${event.name}: ${event.message}`}</li>
+          >{`${event.name ? `${event.name}: ` : ""}${event.message}`}</li>
         ))}
       </ul>
       <form id="send-mchat-form" onSubmit={handleSubmitChat}>

@@ -15,7 +15,7 @@ import {
   // createRotatingPlatforms,
   createLights,
   createNest,
-  createAudioFlower,
+  createAudioFlowers,
   // createChimney,
 } from "./environment";
 import { setupNeighbourhoodData } from "./neighbourhood-data";
@@ -39,7 +39,7 @@ export const Neighbourhood = ({ currentUser }) => {
   const trackRef = useRef(null);
   const cameraRef = useRef(null);
   const meRef = useRef(null);
-  const audioFlowerPlaying = useRef(false);
+  const audioFlowerPlaying = useRef({});
   const updateUserRef = useRef(() => {});
   const cleanupUserRef = useRef(() => {});
   const [welcomeIsDisplayed, setWelcomeIsDisplayed] = useState(true);
@@ -142,7 +142,7 @@ export const Neighbourhood = ({ currentUser }) => {
 
       createNest({ scene, track, pointerClickMeshes });
 
-      const { rotateAudioFlower } = createAudioFlower({
+      const { rotateAudioFlower } = createAudioFlowers({
         scene,
         track,
         pointerClickMeshes,
@@ -226,9 +226,12 @@ export const Neighbourhood = ({ currentUser }) => {
       cleanupUser();
       // updateRotatingPlanes();
       // updateNest();
-      if (audioFlowerPlaying.current) {
-        updateFlower();
-      }
+      Object.keys(audioFlowerPlaying.current).forEach((id) => {
+        if (audioFlowerPlaying.current[id]) {
+          updateFlower(id);
+        }
+      });
+
       // if (cameraRef.current && meRef.current) {
       //   controls.target = meRef.current.position;
       // }

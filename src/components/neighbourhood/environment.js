@@ -6,6 +6,10 @@ import nest from "../../assets/models/nest.glb";
 import audioFlower from "../../assets/models/audio-flower.glb";
 import chimney from "../../assets/models/chimney1.gltf";
 import highParkAudio1 from "../../assets/audio/highpark-1.mp3";
+import {
+  setSocketOnPlayAudio,
+  socketActivateAudio,
+} from "../../utils/socketio";
 
 const colours = [0xb35d58, 0xc2022c, 0x58a672, 0xbf9b45, 0x223870];
 function getRandomColor() {
@@ -142,7 +146,19 @@ export const createChimney = ({ scene, track }) => {
   );
 };
 
-export const createAudioFlower = ({
+const audioFlowerTunes = {
+  flower1: {
+    id: "flower1",
+    tune: highParkAudio1,
+    position: { x: 0, y: 50, z: 0 },
+  },
+  // flower2: {
+  //   id: "flower2",
+  //   tune: highParkAudio1,
+  //   position: { x: 2000, y: 200, z: 2000 },
+  // },
+};
+export const createAudioFlowers = ({
   scene,
   track,
   pointerClickMeshes,
@@ -150,31 +166,41 @@ export const createAudioFlower = ({
 }) => {
   const loader = new GLTFLoader();
   let loadedScene = {};
+
+  setSocketOnPlayAudio(function ({ flowerId }) {
+    console.log("play audio received");
+    const player = new Tone.Player(highParkAudio1, () => {
+      audioFlowerPlaying.current[flowerId] = true;
+    }).toDestination();
+    // play as soon as the buffer is loaded
+    player.autostart = true;
+    player.onstop = () => {
+      audioFlowerPlaying.current[flowerId] = false;
+      player.dispose();
+    };
+  });
+
   // Load a glTF resource
   loader.load(
     // resource URL
     audioFlower,
     // called when the resource is loaded
     function (gltf) {
-      const flower = track(gltf.scene);
-      scene.add(flower);
-      flower.children.forEach((child) => {
-        pointerClickMeshes.push(child);
-        child.callback = () => {
-          const player = new Tone.Player(highParkAudio1, () => {
-            audioFlowerPlaying.current = true;
-          }).toDestination();
-          // play as soon as the buffer is loaded
-          player.autostart = true;
-          player.onstop = () => {
-            audioFlowerPlaying.current = false;
-            player.dispose();
+      Object.values(audioFlowerTunes).forEach((flow) => {
+        const flower = track(gltf.scene.clone());
+        scene.add(flower);
+        flower.children.forEach((child) => {
+          pointerClickMeshes.push(child);
+          child.callback = () => {
+            socketActivateAudio({ flowerId: flow.id, roomId: "public" });
           };
-        };
+        });
+        flower.scale.set(50, 50, 50);
+        flower.position.x = audioFlowerTunes[flow.id].position.x;
+        flower.position.y = audioFlowerTunes[flow.id].position.y;
+        flower.position.z = audioFlowerTunes[flow.id].position.z;
+        loadedScene[flow.id] = flower;
       });
-      flower.scale.set(50, 50, 50);
-      flower.position.y = 500;
-      loadedScene = flower;
     },
     // called while loading is progressing
     function (xhr) {
@@ -186,9 +212,9 @@ export const createAudioFlower = ({
     }
   );
 
-  function rotateAudioFlower() {
-    if (loadedScene.rotateY) {
-      loadedScene.rotateY(0.005);
+  function rotateAudioFlower(id) {
+    if (loadedScene[id].rotateY) {
+      loadedScene[id].rotateY(0.005);
     }
   }
   return { rotateAudioFlower };

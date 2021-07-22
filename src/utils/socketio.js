@@ -34,3 +34,11 @@ export const socketSubmitChat = ({ message, roomId }) => {
 export const setSocketOnChat = (handler) => {
   socket.on("chat message", handler);
 };
+
+export const setSocketOnPlayAudio = (handler) => {
+  socket.on("play audio", handler);
+};
+
+export const socketActivateAudio = ({ flowerId, roomId }) => {
+  socket.emit("activate audio", { flowerId, roomId });
+};
