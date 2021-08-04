@@ -1,5 +1,4 @@
 import { useState, Fragment, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { Room } from "../room/Room.js";
@@ -58,12 +57,14 @@ const App = () => {
       setModalStatus("hidden");
     });
   };
+  const Signage = () => (
+    <div className="signage">
+      <h1 className="main-banner">you are cruising fartland.net</h1> | [?]
+    </div>
+  );
   const NotLoggedIn = () => (
     <Fragment>
-      <Link to="/" style={{ paddingRight: "1rem" }}>
-        Home
-      </Link>{" "}
-      | anonymous |
+      {`hi anonymous <3 |`}
       <button
         type="button"
         style={{ marginRight: "1rem", marginLeft: "1rem" }}
@@ -83,8 +84,7 @@ const App = () => {
   const LoggedIn = () => (
     <div>
       <div>
-        {`logged in as ${currentUser.username} | `}
-        <Link to="/">Home</Link>
+        {`welcome back ${currentUser.username} <3 | `}
         <button
           type="button"
           style={{ marginRight: "1rem", marginLeft: "1rem" }}
@@ -133,6 +133,7 @@ const App = () => {
             </Modal>
           )}
           <div className="user-nav">
+            <Signage />
             {!!currentUser ? <LoggedIn /> : <NotLoggedIn />}
           </div>
           <Switch>

@@ -9,7 +9,12 @@
   position: absolute;
   top: 20rem;
   left: 5rem;
-  background-color: black;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 1rem 2rem;
+}
+.add-object:hover {
+  background: rgba(1, 133, 78, 0.8);
   color: white;
 }
 .decal-switch-container {
@@ -22,11 +27,4 @@
 .decal-switch-button.selected {
   background-color: yellow;
   color: black;
-}
-.current-selection-container {
-  position: absolute;
-  top: 7rem;
-  left: 5rem;
-  background-color: black;
-  color: white;
 }

@@ -11,6 +11,9 @@ body {
   font-family: "Courier New", Courier, monospace;
 }
 
+textarea {
+  resize: none;
+}
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -45,11 +48,24 @@ body {
   position: absolute;
   color: white;
   width: 100%;
-  max-width: 1200px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   background-color: black;
   padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.signage {
+  display: flex;
+  align-items: center;
+}
+
+.main-banner {
+  font-size: 1rem;
+  text-transform: uppercase;
+  padding-left: 6rem;
+  text-decoration: none;
 }
 
 a,
@@ -59,12 +75,15 @@ a:visited {
 
 button {
   font-family: "Courier New", Courier, monospace;
-  border: 1px solid yellow;
-  background-color: black;
-  color: white;
+  background-color: white;
+  color: black;
   font-size: 1rem;
   cursor: pointer;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
 }
 button:hover {
-  border-color: red;
+  background-color: rgb(245, 185, 185);
+  color: black;
 }

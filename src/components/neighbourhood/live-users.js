@@ -117,26 +117,32 @@ export const setupLiveUsers = ({
     meRef,
   });
 
-  setSocketOnUserConnected(function ({ connectedUser }) {
+  const setSocketOffUserConnected = setSocketOnUserConnected(function ({
+    connectedUser,
+  }) {
     if (!userFigures[connectedUser.id]) {
       createUserObjectWithScene(connectedUser);
     }
   });
 
-  setSocketOnUserDisconnected(({ disconnectedUser }) => {
-    const figure = userFigures[disconnectedUser.id];
-    if (figure) {
-      figure.clean(scene);
-      delete userFigures[disconnectedUser.id];
+  const setSocketOffUserDisconnected = setSocketOnUserDisconnected(
+    ({ disconnectedUser }) => {
+      const figure = userFigures[disconnectedUser.id];
+      if (figure) {
+        figure.clean(scene);
+        delete userFigures[disconnectedUser.id];
+      }
     }
-  });
+  );
 
-  setSocketOnUserDestination(({ id, position }) => {
-    const figure = userFigures[id];
-    figure.setDestination(position);
-  });
+  const setSocketOffUserDestination = setSocketOnUserDestination(
+    ({ id, position }) => {
+      const figure = userFigures[id];
+      if (figure) figure.setDestination(position);
+    }
+  );
 
-  setSocketOnUpdatedName(({ updatedUser }) => {
+  const setSocketOffUpdatedName = setSocketOnUpdatedName(({ updatedUser }) => {
     const figure = userFigures[updatedUser.id];
     if (figure) {
       userFigures[updatedUser.id].updateLabel(updatedUser.name);
@@ -151,12 +157,16 @@ export const setupLiveUsers = ({
   });
 
   const cleanupUserFigures = () => {
+    console.log("clean up user figures");
     for (const [id, figure] of Object.entries(userFigures)) {
       figure.clean(scene);
       delete userFigures[id];
     }
     socket.emit("left room", { roomId });
-    socket.removeAllListeners();
+    setSocketOffUserDestination();
+    setSocketOffUserConnected();
+    setSocketOffUserDisconnected();
+    setSocketOffUpdatedName();
   };
 
   const updateUserFigures = () => {

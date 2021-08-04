@@ -19,7 +19,6 @@ export const Editor = ({ mesh, scene, currentUser }) => {
   // material: map, envmap, colour, phong attributes
 
   //delete
-  console.log(mesh.booObjectId);
   let canDelete;
   if (mesh.geometry instanceof DecalGeometry) {
     canDelete = !mesh.permanent;
@@ -38,9 +37,13 @@ export const Editor = ({ mesh, scene, currentUser }) => {
   };
   return (
     <div className="editor-container">
+      <div>last clicked object:</div>
+      <div className="current-selection-container">
+        {mesh && mesh.booObjectId}
+      </div>
       {canDelete && (
         <button type="button" onClick={handleClickDelete}>
-          delete
+          delete it?
         </button>
       )}
     </div>

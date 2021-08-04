@@ -8,7 +8,6 @@ import { ResourceTracker } from "../../utils/three-utils/resource-tracker";
 import { createGround } from "./ground-utils";
 import { createHelper } from "./pointer-utils";
 import { setupLiveUsers } from "./live-users";
-import { socket } from "../../utils/socketio";
 import { Events } from "../events/Events";
 import { sampleData } from "./ground-data";
 import {
@@ -42,6 +41,7 @@ export const Neighbourhood = ({ currentUser }) => {
   const audioFlowerPlaying = useRef({});
   const updateUserRef = useRef(() => {});
   const cleanupUserRef = useRef(() => {});
+  //reset this and make it first time visitor eventually
   const [welcomeIsDisplayed, setWelcomeIsDisplayed] = useState(true);
 
   useEffect(() => {
@@ -276,7 +276,6 @@ export const Neighbourhood = ({ currentUser }) => {
 
     return () => {
       resTracker.dispose();
-      socket.removeAllListeners();
       containerCurr.removeChild(renderer.domElement);
       containerCurr.removeChild(stats.dom);
       unsubscribeRoomObjects();
@@ -312,12 +311,9 @@ export const Neighbourhood = ({ currentUser }) => {
         />
       )}
       <button className="add-object" onClick={() => setObjectFormIsOpen(true)}>
-        drop something
+        {`--> drop something`}
       </button>
-      <div className="current-selection-container">
-        {currentSelection && currentSelection.booObjectId}
-      </div>
-      {currentSelection && (
+      {currentSelection && currentUser.username === "srhboo" && (
         <Editor
           mesh={currentSelection}
           scene={sceneRef.current}

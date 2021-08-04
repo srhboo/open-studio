@@ -98,7 +98,7 @@ export const ObjectCreationForm = ({
           <button
             type="button"
             className={`object-type-button${
-              objectType === "video" ? " pressed" : ""
+              objectType === "sound" ? " pressed" : ""
             }`}
             onClick={() => setObjectType("sound")}
           >

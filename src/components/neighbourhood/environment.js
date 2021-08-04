@@ -104,7 +104,7 @@ export const createNest = ({ scene, track, pointerClickMeshes }) => {
     },
     // called while loading is progressing
     function (xhr) {
-      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      console.log("nest " + (xhr.loaded / xhr.total) * 100 + "% loaded");
     },
     // called when loading has errors
     function (error) {
@@ -137,7 +137,7 @@ export const createChimney = ({ scene, track }) => {
     },
     // called while loading is progressing
     function (xhr) {
-      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      console.log("chimney" + (xhr.loaded / xhr.total) * 100 + "% loaded");
     },
     // called when loading has errors
     function (error) {
@@ -204,7 +204,9 @@ export const createAudioFlowers = ({
     },
     // called while loading is progressing
     function (xhr) {
-      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      console.log(
+        "audio flower " + (xhr.loaded / xhr.total) * 100 + "% loaded"
+      );
     },
     // called when loading has errors
     function (error) {

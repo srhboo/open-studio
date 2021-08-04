@@ -3,7 +3,6 @@ import {
   socketSubmitChat,
   setSocketOnChat,
   setSocketOnPlayAudio,
-  socket,
 } from "../../utils/socketio";
 import "./events.css";
 
@@ -11,7 +10,6 @@ export const Events = ({ roomId }) => {
   const [events, setEvents] = useState([]);
   const [message, setMessage] = useState("");
   const eventsScrollRef = useRef(null);
-
   const handleSubmitChat = (e) => {
     e.preventDefault();
     socketSubmitChat({ message, roomId });
@@ -20,20 +18,18 @@ export const Events = ({ roomId }) => {
 
   useEffect(() => {
     const handleReceiveChat = ({ message, name }) => {
-      console.log("got in events");
       setEvents([...events, { message, name }]);
       eventsScrollRef.current.scrollTop = eventsScrollRef.current.scrollHeight;
     };
-    setSocketOnChat(handleReceiveChat);
+    const setSocketOffChat = setSocketOnChat(handleReceiveChat);
 
-    setSocketOnPlayAudio(function ({ name }) {
-      console.log("playing audio");
+    const setSocketOffPlayAudio = setSocketOnPlayAudio(function ({ name }) {
       setEvents([...events, { message: `${name} has activated a sound` }]);
     });
     // TODO: why does chat not work when logged in
     return () => {
-      // socket.removeAllListeners("chat message");
-      // socket.removeAllListeners("play audio");
+      setSocketOffChat();
+      setSocketOffPlayAudio();
     };
   }, [events]);
 
