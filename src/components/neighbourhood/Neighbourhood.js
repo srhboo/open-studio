@@ -42,7 +42,7 @@ export const Neighbourhood = ({ currentUser }) => {
   const updateUserRef = useRef(() => {});
   const cleanupUserRef = useRef(() => {});
   //reset this and make it first time visitor eventually
-  const [welcomeIsDisplayed, setWelcomeIsDisplayed] = useState(false);
+  const [welcomeIsDisplayed, setWelcomeIsDisplayed] = useState(true);
 
   useEffect(() => {
     const resTracker = new ResourceTracker();
@@ -217,8 +217,8 @@ export const Neighbourhood = ({ currentUser }) => {
       newControls.minDistance = 100;
       newControls.maxDistance = 100000;
       newControls.maxPolarAngle = Math.PI / 2;
-      newControls.enableZoom = true;
-      newControls.enablePan = true;
+      newControls.enableZoom = false;
+      newControls.enablePan = false;
       newControls.enableKeys = true;
       return newControls;
     }
@@ -233,9 +233,14 @@ export const Neighbourhood = ({ currentUser }) => {
         }
       });
 
-      // if (cameraRef.current && meRef.current) {
-      //   controls.target = meRef.current.position;
-      // }
+      if (cameraRef.current && meRef.current) {
+        controls.target = new THREE.Vector3(meRef.current.position);
+        cameraRef.current.position.set(
+          meRef.current.position.x,
+          meRef.current.position.y + 1000,
+          meRef.current.position.z + 200
+        );
+      }
 
       controls.update();
       stats && stats.update();
@@ -298,7 +303,7 @@ export const Neighbourhood = ({ currentUser }) => {
     return () => {
       cleanupUserFigures();
     };
-  }, []);
+  }, [currentUser]);
   return (
     <React.Fragment>
       {welcomeIsDisplayed && (

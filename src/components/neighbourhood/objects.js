@@ -18,7 +18,7 @@ export const createObject = ({
   const color = new THREE.Color();
   // color.setHSL(Math.random(), 0.7, Math.random() * 0.2 + 0.05);
   // color.setHSL(Math.random(), 43 / 256, 70 / 256);
-  color.setHSL(0, 0, 0.05);
+  color.setHSL(0, 0, 0.01);
 
   const objectMaterial = track(
     new THREE.MeshLambertMaterial({
