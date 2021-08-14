@@ -63,7 +63,7 @@ const App = () => {
     </div>
   );
   const NotLoggedIn = () => (
-    <Fragment>
+    <div>
       {`hi anonymous <3 |`}
       <button
         type="button"
@@ -79,7 +79,7 @@ const App = () => {
       >
         register
       </button>
-    </Fragment>
+    </div>
   );
   const LoggedIn = () => (
     <div>

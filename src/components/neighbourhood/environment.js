@@ -3,8 +3,8 @@ import * as Tone from "tone";
 import { getRandomInt } from "../../utils/random";
 import { GLTFLoader } from "../../utils/three-jsm/loaders/GLTFLoader";
 import nest from "../../assets/models/nest.glb";
-import audioFlower from "../../assets/models/audio-flower.glb";
-import chimney from "../../assets/models/chimney1.gltf";
+import audioFlower from "../../assets/models/audio-flower-cable.glb";
+import chimney from "../../assets/models/chimney1.glb";
 import highParkAudio1 from "../../assets/audio/highpark-1.mp3";
 import {
   setSocketOnPlayAudio,
@@ -23,7 +23,7 @@ export const createLights = ({ scene, track }) => {
   scene.add(track(new THREE.AmbientLight(0x505050, 1)));
 
   const dirLight = track(new THREE.DirectionalLight(0x55505a, 5));
-  dirLight.position.set(0, 3, 0);
+  dirLight.position.set(0.5, 1, 0);
   scene.add(dirLight);
 };
 export const createRotatingPlatforms = ({
@@ -131,9 +131,11 @@ export const createChimney = ({ scene, track }) => {
     chimney,
     // called when the resource is loaded
     function (gltf) {
-      track(gltf.scene);
-      scene.add(gltf.scene);
-      console.log(gltf.scene);
+      const chimney = track(gltf.scene.clone());
+      scene.add(chimney);
+      chimney.scale.set(50, 50, 50);
+      chimney.position.set(-2343, 1800, 2734);
+      chimney.rotateY(Math.PI / 2);
     },
     // called while loading is progressing
     function (xhr) {
@@ -150,7 +152,7 @@ const audioFlowerTunes = {
   flower1: {
     id: "flower1",
     tune: highParkAudio1,
-    position: { x: 0, y: 50, z: 0 },
+    position: { x: 162, y: 449, z: 304 },
   },
   // flower2: {
   //   id: "flower2",

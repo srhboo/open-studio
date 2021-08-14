@@ -15,7 +15,7 @@ import {
   createLights,
   createNest,
   createAudioFlowers,
-  // createChimney,
+  createChimney,
 } from "./environment";
 import { setupNeighbourhoodData } from "./neighbourhood-data";
 import { createObject } from "./objects";
@@ -42,7 +42,7 @@ export const Neighbourhood = ({ currentUser }) => {
   const updateUserRef = useRef(() => {});
   const cleanupUserRef = useRef(() => {});
   //reset this and make it first time visitor eventually
-  const [welcomeIsDisplayed, setWelcomeIsDisplayed] = useState(true);
+  const [welcomeIsDisplayed, setWelcomeIsDisplayed] = useState(false);
 
   useEffect(() => {
     const resTracker = new ResourceTracker();
@@ -142,6 +142,8 @@ export const Neighbourhood = ({ currentUser }) => {
 
       createNest({ scene, track, pointerClickMeshes });
 
+      createChimney({ scene, track });
+
       const { rotateAudioFlower } = createAudioFlowers({
         scene,
         track,
@@ -223,7 +225,6 @@ export const Neighbourhood = ({ currentUser }) => {
 
     function update() {
       updateUserRef.current();
-      cleanupUser();
       // updateRotatingPlanes();
       // updateNest();
       Object.keys(audioFlowerPlaying.current).forEach((id) => {
@@ -261,7 +262,7 @@ export const Neighbourhood = ({ currentUser }) => {
       });
       return { newObject, switchHelper };
     };
-    setHandlePlaceNote(() => handleAddNote);
+    setHandlePlaceNote(handleAddNote);
 
     const handleAddDecal = () => {
       const newObject = createDecalHelper({
@@ -297,7 +298,7 @@ export const Neighbourhood = ({ currentUser }) => {
     return () => {
       cleanupUserFigures();
     };
-  }, [currentUser]);
+  }, []);
   return (
     <React.Fragment>
       {welcomeIsDisplayed && (
@@ -313,7 +314,7 @@ export const Neighbourhood = ({ currentUser }) => {
       <button className="add-object" onClick={() => setObjectFormIsOpen(true)}>
         {`--> drop something`}
       </button>
-      {currentSelection && currentUser.username === "srhboo" && (
+      {currentSelection && currentUser && currentUser.username === "srhboo" && (
         <Editor
           mesh={currentSelection}
           scene={sceneRef.current}

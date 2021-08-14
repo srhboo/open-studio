@@ -1,7 +1,6 @@
 import { storage } from "../../index";
 
 export const uploadFileTo = ({ creator, filename, file, resolve, reject }) => {
-  console.log("called");
   const storageRef = storage.ref();
   const root = creator === "anonymous" ? "anonymous" : `creators/${creator}`;
   const ref = storageRef.child(`${root}/${filename}`);

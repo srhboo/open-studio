@@ -79,6 +79,7 @@ export const createHelper = ({
           }
 
           const intersectPoint = intersects[0].point;
+          console.log(intersectPoint);
           // affectPlaneAtPoint({
           //   point: {
           //     x: intersectPoint.x,

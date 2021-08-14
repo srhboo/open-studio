@@ -12,6 +12,7 @@ import {
 } from "../../utils/socketio";
 import { OBJLoader } from "../../utils/three-jsm/loaders/OBJLoader";
 import chainWindow from "../../assets/models/chain-window2.obj";
+import { getLeafGradGoopMat } from "../decals/leaf-grad";
 // TODO: this copy is redundant with code in /rooms
 // refactor after figuring out how they connect
 
@@ -39,11 +40,12 @@ const createUserObject =
     const color = new THREE.Color();
     color.setHSL(Math.random(), 0.7, Math.random() * 0.2 + 0.05);
 
-    const userMaterial = track(
-      new THREE.MeshLambertMaterial({
-        color: 0x80ee10,
-      })
-    );
+    // const userMaterial = track(
+    //   new THREE.MeshLambertMaterial({
+    //     color: 0x000000,
+    //   })
+    // );
+    const userMaterial = track(getLeafGradGoopMat({ track }));
 
     const userObject = track(new THREE.Mesh(userGeometry, userMaterial));
     userGroup.position.x = position.x;
