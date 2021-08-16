@@ -19,7 +19,7 @@ import { getLeafGradGoopMat } from "../decals/leaf-grad";
 // https://codepen.io/smtrd/pen/MZVWpN
 
 const createUserObject =
-  ({ scene, userFigures, track, type = "sphere", meRef }) =>
+  ({ scene, userFigures, track, type = "sphere" }) =>
   ({ position, id, name }) => {
     let userGeometry;
     const userGroup = new THREE.Group();
@@ -52,7 +52,6 @@ const createUserObject =
     userGroup.position.y = position.y;
     userGroup.position.z = position.z;
     userGroup.add(userObject);
-    meRef.current = userObject;
 
     const loader = new OBJLoader();
 
@@ -98,7 +97,7 @@ const createUserObject =
     // class has own clean method
     userFigures[id] = figure;
 
-    return userObject;
+    return userGroup;
   };
 
 export const setupLiveUsers = ({
@@ -108,7 +107,6 @@ export const setupLiveUsers = ({
   currentUser,
   meRef,
 }) => {
-  console.log("setting up live users");
   const userFigures = {};
 
   const createUserObjectWithScene = createUserObject({
@@ -116,7 +114,6 @@ export const setupLiveUsers = ({
     userFigures,
     track,
     currentUser,
-    meRef,
   });
 
   const setSocketOffUserConnected = setSocketOnUserConnected(function ({
@@ -151,10 +148,14 @@ export const setupLiveUsers = ({
     }
   });
 
-  socketEmitJoinedRoom({ roomId }, ({ usersOnline }) => {
+  socketEmitJoinedRoom({ roomId }, ({ usersOnline, meSocketId }) => {
     for (let i = 0; i < usersOnline.length; i++) {
       const user = usersOnline[i];
-      createUserObjectWithScene(user);
+      const isMe = user.id === meSocketId;
+      const temp = createUserObjectWithScene({ ...user });
+      if (isMe) {
+        meRef.current = temp;
+      }
     }
   });
 
@@ -173,7 +174,7 @@ export const setupLiveUsers = ({
 
   const updateUserFigures = () => {
     for (const mesh of Object.values(userFigures)) {
-      mesh && mesh.updatePosition(10);
+      mesh && mesh.updatePosition(2);
     }
   };
 

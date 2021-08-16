@@ -4,6 +4,7 @@ import "./neighbourhood.css";
 import { OrbitControls } from "../../utils/three-jsm/controls/OrbitControls";
 import { CSS2DRenderer } from "../../utils/three-jsm/renderers/CSS2DRenderer";
 import Stats from "../../utils/three-jsm/libs/stats.module.js";
+import { hypotenuse } from "../../utils/vector";
 import { ResourceTracker } from "../../utils/three-utils/resource-tracker";
 import { createGround } from "./ground-utils";
 import { createHelper } from "./pointer-utils";
@@ -69,8 +70,6 @@ export const Neighbourhood = ({ currentUser }) => {
       worldHalfDepth = worldDepth / 2;
 
     let helper;
-
-    let cleanupUser = cleanupUserRef.current;
 
     let pointerClickMeshes = [];
     const raycaster = new THREE.Raycaster();
@@ -217,30 +216,49 @@ export const Neighbourhood = ({ currentUser }) => {
       newControls.minDistance = 100;
       newControls.maxDistance = 100000;
       newControls.maxPolarAngle = Math.PI / 2;
-      newControls.enableZoom = false;
-      newControls.enablePan = false;
+      newControls.enableZoom = true;
+      newControls.enablePan = true;
       newControls.enableKeys = true;
+      newControls.zoomSpeed = 0.05;
       return newControls;
+    }
+
+    function updateZoom() {
+      if (cameraRef.current && meRef.current) {
+        controls.target.x = meRef.current.position.x;
+        controls.target.y = meRef.current.position.y + 100;
+        controls.target.z = meRef.current.position.z;
+        const a = controls.target.x - camera.position.x;
+        const b = controls.target.z - camera.position.z;
+        const distAway = hypotenuse(a, b);
+        if (distAway > 1500) {
+          controls.dIn(0.99);
+        }
+      }
+    }
+
+    function updateFlowers() {
+      Object.keys(audioFlowerPlaying.current).forEach((id) => {
+        if (audioFlowerPlaying.current[id]) {
+          updateFlower(id);
+        }
+      });
     }
 
     function update() {
       updateUserRef.current();
       // updateRotatingPlanes();
       // updateNest();
-      Object.keys(audioFlowerPlaying.current).forEach((id) => {
-        if (audioFlowerPlaying.current[id]) {
-          updateFlower(id);
-        }
-      });
 
-      if (cameraRef.current && meRef.current) {
-        controls.target = new THREE.Vector3(meRef.current.position);
-        cameraRef.current.position.set(
-          meRef.current.position.x,
-          meRef.current.position.y + 1000,
-          meRef.current.position.z + 200
-        );
-      }
+      updateFlowers();
+      updateZoom();
+
+      // cameraRef.current.position.set(
+      //   meRef.current.position.x,
+      //   meRef.current.position.y + 1000,
+      //   meRef.current.position.z + 200
+      // );
+      // }
 
       controls.update();
       stats && stats.update();

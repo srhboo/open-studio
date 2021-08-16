@@ -16,3 +16,5 @@ export const calculateNewPosition = (
   });
   return { x, y, z };
 };
+
+export const hypotenuse = (a, b) => Math.sqrt(a ** 2 + b ** 2);
