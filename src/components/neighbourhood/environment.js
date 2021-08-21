@@ -169,16 +169,17 @@ export const createAudioFlowers = ({
   const loader = new GLTFLoader();
   let loadedScene = {};
 
+  const player = new Tone.Player(highParkAudio1).toDestination();
+  player.autostart = false;
+
   setSocketOnPlayAudio(function ({ flowerId }) {
-    console.log("play audio received");
-    const player = new Tone.Player(highParkAudio1, () => {
-      audioFlowerPlaying.current[flowerId] = true;
-    }).toDestination();
+    player.start();
+    audioFlowerPlaying.current[flowerId] = true;
     // play as soon as the buffer is loaded
-    player.autostart = true;
+    // player.autostart = true;
     player.onstop = () => {
       audioFlowerPlaying.current[flowerId] = false;
-      player.dispose();
+      // player.dispose();
     };
   });
 
@@ -221,5 +222,5 @@ export const createAudioFlowers = ({
       loadedScene[id].rotateY(0.005);
     }
   }
-  return { rotateAudioFlower };
+  return { rotateAudioFlower, player };
 };

@@ -11,6 +11,8 @@ import { createHelper } from "./pointer-utils";
 import { setupLiveUsers } from "./live-users";
 import { Events } from "../events/Events";
 import { sampleData } from "./ground-data";
+import movementSound from "../../assets/audio/movement-bare.mp3";
+import { MovementPlayer } from "../movement-player/MovementPlayer";
 import {
   // createRotatingPlatforms,
   createLights,
@@ -54,7 +56,7 @@ export const Neighbourhood = ({ currentUser }) => {
 
     let camera, controls, renderer, scene;
 
-    let groundMesh, updateFlower;
+    let groundMesh, updateFlower, flowerPlayer;
     // let texture, textureData;
     // let updateRotatingPlanes, updateNest;
 
@@ -84,7 +86,6 @@ export const Neighbourhood = ({ currentUser }) => {
       scene = new THREE.Scene();
       sceneRef.current = scene;
       scene.background = new THREE.Color(0x000000);
-
       camera = new THREE.PerspectiveCamera(
         60,
         window.innerWidth / window.innerHeight,
@@ -143,13 +144,14 @@ export const Neighbourhood = ({ currentUser }) => {
 
       createChimney({ scene, track });
 
-      const { rotateAudioFlower } = createAudioFlowers({
+      const { rotateAudioFlower, player } = createAudioFlowers({
         scene,
         track,
         pointerClickMeshes,
         audioFlowerPlaying,
       });
       updateFlower = rotateAudioFlower;
+      flowerPlayer = player;
       // updateNest = rotateNest;
 
       // createChimney({ scene, track });
@@ -219,7 +221,7 @@ export const Neighbourhood = ({ currentUser }) => {
       newControls.enableZoom = true;
       newControls.enablePan = true;
       newControls.enableKeys = true;
-      newControls.zoomSpeed = 0.05;
+      newControls.zoomSpeed = 1;
       return newControls;
     }
 
@@ -304,10 +306,13 @@ export const Neighbourhood = ({ currentUser }) => {
       containerCurr.removeChild(stats.dom);
       unsubscribeRoomObjects();
       roomObjects.current = {};
+      flowerPlayer.dispose();
     };
   }, []);
 
   useEffect(() => {
+    const mainPlayer = new MovementPlayer(movementSound);
+
     const { updateUserFigures, cleanupUserFigures } = setupLiveUsers({
       scene: sceneRef.current,
       track: trackRef.current,
@@ -315,11 +320,13 @@ export const Neighbourhood = ({ currentUser }) => {
       roomId,
       currentUser,
       meRef,
+      mainPlayer,
     });
     updateUserRef.current = updateUserFigures;
     cleanupUserRef.current = cleanupUserFigures;
     return () => {
       cleanupUserFigures();
+      mainPlayer.dispose();
     };
   }, [currentUser]);
   return (

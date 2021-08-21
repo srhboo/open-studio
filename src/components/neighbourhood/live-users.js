@@ -20,7 +20,7 @@ import { getLeafGradGoopMat } from "../decals/leaf-grad";
 
 const createUserObject =
   ({ scene, userFigures, track, type = "sphere" }) =>
-  ({ position, id, name }) => {
+  ({ position, id, name, mainPlayer }) => {
     let userGeometry;
     const userGroup = new THREE.Group();
     scene.add(userGroup);
@@ -60,7 +60,7 @@ const createUserObject =
     // userSphere.callback = function () {
     //   setImageViewerIsOpen(true);
     // };
-    const figure = new UserFigure(id, userGroup);
+    const figure = new UserFigure(id, userGroup, mainPlayer);
 
     // load a resource
     loader.load(
@@ -106,6 +106,7 @@ export const setupLiveUsers = ({
   roomId,
   currentUser,
   meRef,
+  mainPlayer,
 }) => {
   const userFigures = {};
 
@@ -152,7 +153,7 @@ export const setupLiveUsers = ({
     for (let i = 0; i < usersOnline.length; i++) {
       const user = usersOnline[i];
       const isMe = user.id === meSocketId;
-      const temp = createUserObjectWithScene({ ...user });
+      const temp = createUserObjectWithScene({ ...user, mainPlayer });
       if (isMe) {
         meRef.current = temp;
       }
@@ -174,7 +175,7 @@ export const setupLiveUsers = ({
 
   const updateUserFigures = () => {
     for (const mesh of Object.values(userFigures)) {
-      mesh && mesh.updatePosition(2);
+      mesh && mesh.updatePosition(5);
     }
   };
 

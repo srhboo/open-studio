@@ -29,7 +29,7 @@ export const pasteGroundDecal = ({
 
   // const scale = params.minScale + Math.random() * ( params.maxScale - params.minScale );
   if (decalType === DECAL_TYPES.CUSTOM) {
-    size.set(100, 100, 100);
+    size.set(200, 200, 200);
   } else {
     size.set(500, 500, 500);
   }
@@ -43,7 +43,6 @@ export const pasteGroundDecal = ({
   scene.add(decal);
   pointerClickMeshes.push(decal);
   if (isOnGround) {
-    console.log("is on ground");
     saveDecal({
       decal,
       decalType,

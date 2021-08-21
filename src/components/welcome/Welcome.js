@@ -1,11 +1,16 @@
-import React, { useEffect } from "react";
+import React from "react";
 import * as Tone from "tone";
 import "./welcome.css";
 
 export const Welcome = ({ closeDisplay }) => {
-  useEffect(() => {
+  const startAudio = () => {
     Tone.start();
-  });
+  };
+
+  const onClose = () => {
+    startAudio();
+    closeDisplay();
+  };
   return (
     <div className="cinematic-container">
       <div className="curtain" onClick={closeDisplay}>
@@ -21,7 +26,7 @@ export const Welcome = ({ closeDisplay }) => {
           </p>
           <p>enabling audio now.</p>
         </div>
-        <button onClick={closeDisplay}>{`ok :)`}</button>
+        <button onClick={onClose}>{`ok :)`}</button>
       </div>
     </div>
   );
