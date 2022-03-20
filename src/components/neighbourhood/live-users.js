@@ -175,7 +175,11 @@ export const setupLiveUsers = ({
 
   const updateUserFigures = () => {
     for (const mesh of Object.values(userFigures)) {
-      mesh && mesh.updatePosition(5);
+      if (mesh) {
+        let { moving } = mesh.updatePosition(5);
+        return { moving };
+      }
+      return { moving: false };
     }
   };
 

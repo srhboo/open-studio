@@ -53,7 +53,7 @@ class OrbitControls extends EventDispatcher {
 
     // How far you can orbit vertically, upper and lower limits.
     // Range is 0 to Math.PI radians.
-    this.minPolarAngle = 0; // radians
+    this.minPolarAngle = -Math.PI; // radians
     this.maxPolarAngle = Math.PI; // radians
 
     // How far you can orbit horizontally, upper and lower limits.
@@ -358,10 +358,13 @@ class OrbitControls extends EventDispatcher {
     function rotateLeft(angle) {
       sphericalDelta.theta -= angle;
     }
+    this.rotateLeft = rotateLeft;
 
     function rotateUp(angle) {
       sphericalDelta.phi -= angle;
     }
+
+    this.rotateUp = rotateUp;
 
     const panLeft = (function () {
       const v = new Vector3();

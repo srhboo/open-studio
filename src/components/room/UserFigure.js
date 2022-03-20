@@ -37,6 +37,7 @@ export class UserFigure {
         this.player.pause();
       }
     }
+    return { moving: this.moving };
   }
   updateLabel(label) {
     this.mesh.children.forEach((child) => {

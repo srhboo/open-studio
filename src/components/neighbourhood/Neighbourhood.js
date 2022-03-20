@@ -56,6 +56,8 @@ export const Neighbourhood = ({ currentUser }) => {
 
     let camera, controls, renderer, scene;
 
+    let rotationDirection = "NONE";
+
     let groundMesh, updateFlower, flowerPlayer;
     // let texture, textureData;
     // let updateRotatingPlanes, updateNest;
@@ -174,9 +176,37 @@ export const Neighbourhood = ({ currentUser }) => {
       switchHelper = helperUtils.switchHelper;
       scene.add(helper);
 
+      function onKeydown(event) {
+        let code = event.keyCode;
+        switch (code) {
+          case 87 || 38:
+            rotationDirection = "UP";
+            break;
+          case 65 || 37:
+            rotationDirection = "LEFT";
+            break;
+          case 68 || 39:
+            rotationDirection = "RIGHT";
+            break;
+          case 83 || 40:
+            rotationDirection = "DOWN";
+            break;
+          default:
+            rotationDirection = "NONE";
+        }
+      }
+
+      function onKeyup() {
+        rotationDirection = "NONE";
+      }
+
       containerEl.current.addEventListener("pointermove", onPointerMove);
 
       containerEl.current.addEventListener("click", onPointerClick);
+
+      containerEl.current.addEventListener("keydown", onKeydown);
+
+      containerEl.current.addEventListener("keyup", onKeyup);
 
       stats = new Stats();
       containerEl.current.appendChild(stats.dom);
@@ -198,6 +228,7 @@ export const Neighbourhood = ({ currentUser }) => {
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setClearColor(0x004477);
       let canvas = renderer.domElement;
+      canvas.setAttribute("tabindex", 0);
       containerEl.current.appendChild(canvas);
     }
 
@@ -233,8 +264,29 @@ export const Neighbourhood = ({ currentUser }) => {
         const a = controls.target.x - camera.position.x;
         const b = controls.target.z - camera.position.z;
         const distAway = hypotenuse(a, b);
-        if (distAway > 1500) {
+        if (distAway > 1200) {
           controls.dIn(0.99);
+        }
+      }
+    }
+
+    function updateRotation(direction) {
+      if (controls) {
+        switch (direction) {
+          case "LEFT":
+            controls.rotateLeft(10 * 2 * 3.14);
+            break;
+          case "RIGHT":
+            controls.rotateLeft(-10 * 2 * 3.14);
+            break;
+          case "UP":
+            controls.rotateUp(0.025);
+            break;
+          case "DOWN":
+            controls.rotateUp(-0.025);
+            break;
+          default:
+            break;
         }
       }
     }
@@ -248,12 +300,18 @@ export const Neighbourhood = ({ currentUser }) => {
     }
 
     function update() {
-      updateUserRef.current();
+      let userUpdates = updateUserRef.current();
+      if (userUpdates && userUpdates.moving) {
+        updateZoom();
+      }
+
+      if (rotationDirection !== "NONE") {
+        updateRotation(rotationDirection);
+      }
       // updateRotatingPlanes();
       // updateNest();
 
       updateFlowers();
-      updateZoom();
 
       // cameraRef.current.position.set(
       //   meRef.current.position.x,
