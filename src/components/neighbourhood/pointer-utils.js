@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { socket } from "../../utils/socketio";
+// import wingsIcon from "../../assets/icons/wings.png";
 
 export const createHelper = ({
   track,
@@ -12,6 +13,13 @@ export const createHelper = ({
   setCurrentSelection,
   groundMesh,
 }) => {
+  // const wingsTexture = track(new THREE.TextureLoader().load(wingsIcon));
+  let INTERSECTED;
+  // immediately use the texture for material creation
+  // const wingsMaterial = track(
+  //   new THREE.MeshBasicMaterial({ map: wingsTexture })
+  // );
+
   const geometryHelper = track(new THREE.ConeGeometry(20, 100, 3));
   geometryHelper.translate(0, 50, 0);
   geometryHelper.rotateX(Math.PI / 2);
@@ -40,9 +48,26 @@ export const createHelper = ({
     raycaster.setFromCamera(pointer, camera);
 
     // See if the ray from the camera into the world hits one of our meshes
-    let intersects;
+    let intersects, intersectsInspectables;
     if (currentHelperType === "default") {
-      intersects = raycaster.intersectObjects(pointerClickMeshes);
+      intersectsInspectables = raycaster.intersectObjects(pointerClickMeshes);
+      let intersectsGround = raycaster.intersectObjects([groundMesh]);
+      intersects = intersectsInspectables.concat(intersectsGround);
+      // highlight monoliths
+      if (intersectsInspectables.length > 0) {
+        if (INTERSECTED !== intersectsInspectables[0].object) {
+          if (INTERSECTED)
+            INTERSECTED.material.color.setHex(INTERSECTED.currentColor);
+
+          INTERSECTED = intersectsInspectables[0].object;
+          INTERSECTED.currentColor = INTERSECTED.material.color.getHex();
+          INTERSECTED.material.color.setHex(0xfcba03);
+        }
+      } else {
+        if (INTERSECTED)
+          INTERSECTED.material.color.set(INTERSECTED.currentColor);
+        INTERSECTED = null;
+      }
     } else {
       intersects = raycaster.intersectObjects([groundMesh]);
     }
@@ -65,7 +90,10 @@ export const createHelper = ({
       //   const intersectsPosition = raycaster.intersectObjects(
       //     raycastHelperObjects
       //   );
-      const intersects = raycaster.intersectObjects(pointerClickMeshes);
+      const intersects = raycaster.intersectObjects([
+        ...pointerClickMeshes,
+        groundMesh,
+      ]);
       if (currentHelperType === "default") {
         if (intersects.length > 0) {
           if (intersects[0].object.callback) {

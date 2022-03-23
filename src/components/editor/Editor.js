@@ -25,7 +25,8 @@ export const Editor = ({ mesh, scene, currentUser }) => {
   } else {
     canDelete =
       (currentUser && mesh.creator && mesh.creator.auid === currentUser.auid) ||
-      (mesh.creator && mesh.creator.username === "anonymous");
+      (mesh.creator && mesh.creator.username === "anonymous") ||
+      (currentUser && currentUser.username === "srhboo");
   }
 
   const handleClickDelete = () => {

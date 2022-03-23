@@ -26,6 +26,5 @@ export class MovementPlayer {
   }
   dispose() {
     this.player.dispose();
-    Tone.Transport.dispose();
   }
 }

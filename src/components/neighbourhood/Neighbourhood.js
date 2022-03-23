@@ -32,7 +32,6 @@ export const Neighbourhood = ({ currentUser }) => {
   const containerEl = useRef(null);
   const roomId = "public";
   const [objectFormIsOpen, setObjectFormIsOpen] = useState(false);
-  const [handlePlaceNote, setHandlePlaceNote] = useState(null);
   const [handlePlaceDecal, setHandlePlaceDecal] = useState(null);
   const [currentSelection, setCurrentSelection] = useState(null);
   const roomObjects = useRef({});
@@ -44,6 +43,7 @@ export const Neighbourhood = ({ currentUser }) => {
   const audioFlowerPlaying = useRef({});
   const updateUserRef = useRef(() => {});
   const cleanupUserRef = useRef(() => {});
+  const handlePlaceNoteRef = useRef(() => {});
   //reset this and make it first time visitor eventually
   const [welcomeIsDisplayed, setWelcomeIsDisplayed] = useState(true);
 
@@ -125,7 +125,7 @@ export const Neighbourhood = ({ currentUser }) => {
         scene,
       });
       groundMesh = updatedGroundMesh;
-      pointerClickMeshes.push(groundMesh);
+      // pointerClickMeshes.push(groundMesh);
 
       loadDecals({
         roomId: "public",
@@ -345,7 +345,7 @@ export const Neighbourhood = ({ currentUser }) => {
       });
       return { newObject, switchHelper };
     };
-    setHandlePlaceNote(handleAddNote);
+    handlePlaceNoteRef.current = handleAddNote;
 
     const handleAddDecal = () => {
       const newObject = createDecalHelper({
@@ -411,7 +411,7 @@ export const Neighbourhood = ({ currentUser }) => {
       )}
       {objectFormIsOpen && (
         <ObjectCreationForm
-          handleInitiatePlaceNote={handlePlaceNote}
+          handleInitiatePlaceNote={handlePlaceNoteRef.current}
           handleInitiatePlaceDecal={handlePlaceDecal}
           closeForm={() => setObjectFormIsOpen(false)}
           currentUser={currentUser}

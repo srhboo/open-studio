@@ -161,7 +161,6 @@ export const setupLiveUsers = ({
   });
 
   const cleanupUserFigures = () => {
-    console.log("clean up user figures");
     for (const [id, figure] of Object.entries(userFigures)) {
       figure.clean(scene);
       delete userFigures[id];
